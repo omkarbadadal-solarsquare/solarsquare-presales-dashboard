@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SolarSquare Presales Performance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --navy: #12284c; --navy2: #1d3a6b; --green: #16a34a; --green-d: #0f7a37; --green-soft: #e7f6ec;
+  --ink: #1a2332; --muted: #64748b; --line: #e3e8ef; --page: #f3f6fa; --card: #ffffff;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; color: var(--ink); background: var(--page); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; background: #eef2f7; padding: 1px 5px; border-radius: 4px; }
+.muted { color: var(--muted); font-size: 12.5px; }
+
+/* header */
+.top { background: linear-gradient(120deg, var(--navy) 0%, var(--navy2) 100%); color: #fff; }
+.top-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 28px 8px; }
+.top h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -.2px; }
+.tag { margin: 2px 0 0; color: #9db4d6; font-size: 12.5px; font-weight: 500; }
+.badge { padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: #35527f; }
+.badge.good { background: var(--green); } .badge.bad { background: #dc2626; }
+.nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 28px 14px; }
+.nav a { color: #cfdcf0; text-decoration: none; font-size: 12.5px; font-weight: 500; padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.nav a:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+/* sticky filter bar */
+.filterbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; padding: 10px 28px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 2px 10px rgba(18,40,76,.06); }
+.filterbar label { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; }
+.filterbar select, .filterbar input { min-width: 150px; padding: 7px 10px; border-radius: 8px; border: 1px solid #cdd6e3; background: #fff; color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 500; }
+.filterbar select:focus, .filterbar input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+.btn { border: 0; background: var(--green); color: #fff; padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn:hover { background: var(--green-d); }
+.btn.ghost { background: #fff; border: 1px solid #cdd6e3; color: var(--navy); }
+.btn.ghost:hover { background: #f1f5fa; }
+.btn.small { padding: 6px 11px; font-size: 12px; background: var(--navy); }
+.btn.small:hover { background: var(--navy2); }
+
+main { max-width: 1480px; margin: 0 auto; padding: 18px 28px 70px; }
+.status { padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; }
+.status.loading { background: #e8effa; color: var(--navy); }
+.status.ok { background: var(--green-soft); color: #14643a; }
+.status.error { background: #fde8ea; color: #9b1c2c; font-weight: 600; }
+.selection { margin: 2px 0 14px; padding: 9px 14px; background: #fff; border-left: 4px solid var(--green); border-radius: 8px; box-shadow: 0 1px 3px rgba(18,40,76,.06); }
+
+/* KPI cards */
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 22px; }
+.kpi { background: var(--card); border-radius: 12px; padding: 13px 15px; box-shadow: 0 1px 3px rgba(18,40,76,.08); border-top: 3px solid var(--green); }
+.kpi-l { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; }
+.kpi-v { font-size: 27px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; margin: 1px 0; font-variant-numeric: tabular-nums; }
+.kpi-s { font-size: 12px; color: var(--muted); }
+
+/* section cards */
+.card { background: var(--card); border-radius: 14px; padding: 18px 20px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(18,40,76,.08); }
+.sec-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.sec-head h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--navy); padding-left: 10px; border-left: 4px solid var(--green); }
+.sec-head h3 { margin: 0; font-size: 14.5px; font-weight: 700; color: var(--navy); }
+.sec-head.sub-head { margin-top: 20px; align-items: center; }
+.lead { margin: 3px 0 0 14px; color: var(--muted); font-size: 13px; }
+h2.inline { display: inline; font-size: 18px; font-weight: 700; color: var(--navy); }
+
+details.def { margin: 4px 0 12px 14px; }
+details.def > summary { display: inline-block; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--green-d); list-style: none; }
+details.def > summary::-webkit-details-marker { display: none; }
+details.def > summary::before { content: "ⓘ "; }
+details.def p { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); max-width: 1000px; }
+
+/* tables */
+.scroll { overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+.scroll.tall { max-height: 540px; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13.5px; }
+th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid #edf0f5; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+thead th { position: sticky; top: 0; z-index: 2; background: var(--navy); color: #fff; font-weight: 600; font-size: 12.5px; text-align: right; white-space: normal; vertical-align: bottom; line-height: 1.25; }
+thead th:first-child { border-top-left-radius: 11px; } thead th:last-child { border-top-right-radius: 11px; }
+th.lbl, td.lbl { text-align: left; position: sticky; left: 0; background: #fff; z-index: 1; font-weight: 600; min-width: 190px; color: var(--ink); }
+thead th.lbl { z-index: 3; background: var(--navy); color: #fff; }
+tbody tr:hover td, tbody tr:hover th.lbl { filter: brightness(.96); }
+tr.total th.lbl, tr.total td { background: var(--green-soft); font-weight: 700; border-top: 2px solid var(--green); color: var(--navy); }
+.sub { display: block; font-size: 11px; color: #475569; font-weight: 400; }
+
+/* data quality */
+details:not(.def) > summary { cursor: pointer; list-style: none; padding: 2px 0; }
+details:not(.def) > summary::-webkit-details-marker { display: none; }
+details:not(.def) > summary::before { content: "▸ "; color: var(--green); font-weight: 700; font-size: 16px; }
+details[open]:not(.def) > summary::before { content: "▾ "; }
+.dq-meta { margin-top: 12px; font-size: 12.5px; display: grid; gap: 4px; color: var(--muted); }
+.dq-meta .warn { color: #9b1c2c; font-weight: 600; }
+.recon { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; }
+.recon li { padding: 6px 11px; border-radius: 8px; font-size: 12.5px; }
+.recon li.ok { background: var(--green-soft); } .recon li.fail { background: #fde8ea; color: #9b1c2c; font-weight: 600; }
+.recon .mark { font-weight: 700; margin-right: 4px; }
+
+@media (max-width: 1200px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 800px) {
+  .top-inner, .nav, .filterbar, main { padding-left: 12px; padding-right: 12px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .filterbar { position: static; }
+  th.lbl, td.lbl { min-width: 130px; }
+}
+@media print { .filterbar { position: static; } .btn, .nav { display: none; } }
+
+[hidden] { display: none !important; }
+
+
+
+/* Simple admin login gate (client-side only; see deployment security note). */
+.login-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(135deg, #12284c 0%, #1d3a6b 58%, #0f7a37 140%); }
+.login-card { width: min(100%, 410px); padding: 34px; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.24); }
+.login-brand { color: var(--green-d); font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+.login-card h1 { margin: 8px 0 5px; color: var(--navy); font-size: 25px; font-weight: 800; }
+.login-card p { margin: 0 0 22px; color: var(--muted); font-size: 13px; }
+.login-field { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; color: var(--ink); font-size: 12px; font-weight: 700; }
+.login-field input { width: 100%; padding: 11px 12px; border: 1px solid #cdd6e3; border-radius: 9px; color: var(--ink); background: #fff; font: inherit; font-size: 14px; }
+.login-field input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+.login-submit { width: 100%; margin-top: 8px; padding: 11px 14px; border: 0; border-radius: 9px; background: var(--green); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.login-submit:hover { background: var(--green-d); }
+.login-error { min-height: 18px; margin-top: 12px !important; color: #b42332 !important; font-size: 12.5px !important; font-weight: 600; }
+#btn-logout { margin-left: auto; }
+@media (max-width: 520px) { .login-card { padding: 26px 22px; } }
+
+</style>
+</head>
+<body>
+  <section id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card" autocomplete="on">
+      <div class="login-brand">SolarSquare</div>
+      <h1>Presales Dashboard</h1>
+      <p>Sign in to view the performance dashboard.</p>
+      <label class="login-field">Username
+        <input id="login-username" name="username" type="text" autocomplete="username" required autofocus>
+      </label>
+      <label class="login-field">Password
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="login-submit" type="submit">Log in</button>
+      <p id="login-error" class="login-error" role="alert" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <div id="dashboard-shell" hidden>
+  <header class="top">
+    <div class="top-inner">
+      <div>
+        <h1>SolarSquare Presales Dashboard</h1>
+        <p class="tag">Unique leads · IST · single-file build v3</p>
+      </div>
+      <span id="recon-badge" class="badge">—</span>
+    </div>
+    <nav class="nav">
+      <a href="#sec-kpi">Summary</a><a href="#sec-score">Score</a><a href="#sec-disp">Disposition</a><a href="#sec-ageing">Ageing</a>
+      <a href="#sec-weekday">Weekday / Weekend</a><a href="#sec-timing">MS → MD Timing</a><a href="#sec-cohort">Cohort</a>
+      <a href="#sec-msslot">MS Slot</a><a href="#sec-mdslot">MD Slot</a><a href="#sec-orderslot">Order Slot</a><a href="#sec-dq">Data Quality</a>
+    </nav>
+  </header>
+
+  <div class="filterbar">
+    <label>Cluster <select id="f-cluster"><option>All</option></select></label>
+    <label>Channel <select id="f-channel"><option>All</option></select></label>
+    <label>Cohort Month <select id="f-cohort"><option>All</option></select></label>
+    <label>As-of Date (IST) <input type="date" id="f-asof"></label>
+    <button id="btn-asof-today" class="btn ghost" type="button">Today</button>
+    <button id="btn-reset" class="btn ghost" type="button">Reset</button>
+    <button id="btn-dl-leads" class="btn" type="button">Download leads (CSV)</button>
+    <button id="btn-logout" class="btn ghost" type="button">Log out</button>
+  </div>
+
+  <main>
+    <div id="status" class="status loading">Starting…</div>
+    <div id="content" hidden>
+      <p id="selection" class="selection"></p>
+
+      <section id="sec-kpi">
+        <div id="kpis" class="kpis"></div>
+      </section>
+
+      <section class="card" id="sec-score">
+        <div class="sec-head"><div><h2>LRM-wise Score Distribution</h2><p class="lead">Share of each LRM's leads in each score range.</p></div><button class="btn small" data-export="tbl-score">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p id="note-score"></p></details>
+        <div class="scroll tall" id="tbl-score"></div>
+      </section>
+
+      <section class="card" id="sec-disp">
+        <div class="sec-head"><div><h2>LRM-wise Disposition Distribution</h2><p class="lead">Share of each LRM's leads in each disposition.</p></div><button class="btn small" data-export="tbl-disp">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p>Percentage of each LRM's filtered unique leads in each <code>disposition_bucket</code> (columns come from the data). TOTAL is computed across all filtered leads.</p></details>
+        <div class="scroll tall" id="tbl-disp"></div>
+      </section>
+
+      <section class="card" id="sec-ageing">
+        <div class="sec-head"><div><h2>Lead Created → Meeting Scheduled / Done Ageing</h2><p class="lead">How quickly leads get a meeting scheduled or done after creation.</p></div><button class="btn small" data-export="tbl-ageing">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p id="note-ageing"></p></details>
+        <div class="scroll" id="tbl-ageing"></div>
+      </section>
+
+      <section class="card" id="sec-weekday">
+        <div class="sec-head"><div><h2>Weekday / Weekend Performance</h2><p class="lead">Funnel by the day type on which the lead was created.</p></div><button class="btn small" data-export="tbl-weekday">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p>Grouped by the weekday/weekend of lead creation. MS → MD % counts only MD on/after the MS calendar date; MD → Order % only orders on/after the MD calendar date.</p></details>
+        <div class="scroll" id="tbl-weekday"></div>
+        <div class="sec-head sub-head"><div><h3>Weekday / weekend of the event itself</h3></div><button class="btn small" data-export="tbl-eventday">Download CSV</button></div>
+        <div class="scroll" id="tbl-eventday"></div>
+      </section>
+
+      <section class="card" id="sec-timing">
+        <div class="sec-head"><div><h2>Meeting Timing &amp; RTM (MS → MD)</h2><p class="lead">How soon a scheduled meeting is actually done.</p></div><button class="btn small" data-export="tbl-timing">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p id="note-timing"></p></details>
+        <div class="scroll" id="tbl-timing"></div>
+      </section>
+
+      <section class="card" id="sec-cohort">
+        <div class="sec-head"><div><h2>Cohort-wise Conversion Funnel</h2><p class="lead">Funnel by lead creation month.</p></div><button class="btn small" data-export="tbl-cohort">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p id="note-cohort"></p></details>
+        <div class="scroll" id="tbl-cohort"></div>
+      </section>
+
+      <section class="card" id="sec-msslot">
+        <div class="sec-head"><div><h2>MS Slot Analysis</h2><p class="lead">Meetings scheduled by time slot, and how many got done.</p></div><button class="btn small" data-export="tbl-msslot">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p>Slots (IST): Slot 1 up to 12:00 · Slot 2 after 12:00 to 15:00 · Slot 3 after 15:00 to 18:00 · Slot 4 after 18:00. Uses <code>meeting_schedule_slot</code>. Valid MD = MD on/after the MS date.</p></details>
+        <div class="scroll" id="tbl-msslot"></div>
+      </section>
+
+      <section class="card" id="sec-mdslot">
+        <div class="sec-head"><div><h2>MD Slot Analysis</h2><p class="lead">Meetings done by time slot, and how many turned into orders.</p></div><button class="btn small" data-export="tbl-mdslot">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p>Uses <code>meeting_done_slot</code>. An order counts only when dated on/after the MD date.</p></details>
+        <div class="scroll" id="tbl-mdslot"></div>
+      </section>
+
+      <section class="card" id="sec-orderslot">
+        <div class="sec-head"><div><h2>Order Slot Distribution</h2><p class="lead">When orders are closed during the day.</p></div><button class="btn small" data-export="tbl-orderslot">Download CSV</button></div>
+        <details class="def"><summary>How it's calculated</summary><p>Uses <code>order_closure_slot</code>.</p></details>
+        <div class="scroll" id="tbl-orderslot"></div>
+      </section>
+
+      <section class="card" id="sec-dq">
+        <details>
+          <summary><h2 class="inline">Data Quality &amp; Reconciliation</h2></summary>
+          <div id="dq-meta" class="dq-meta"></div>
+          <div class="sec-head sub-head"><div><h3>Reconciliation checks (current filter)</h3></div></div>
+          <div id="dq-recon"></div>
+          <div class="sec-head sub-head"><div><h3>Data quality counts</h3></div><button class="btn small" data-export="tbl-dq">Download CSV</button></div>
+          <div class="scroll tall" id="tbl-dq"></div>
+        </details>
+      </section>
+    </div>
+  </main>
+
+  <script>
+/* @license
+Papa Parse
+v5.7.1
+https://github.com/mholt/PapaParse
+License: MIT
+*/
+((e,t)=>{"function"==typeof define&&define.amd?define([],t):"object"==typeof module&&"undefined"!=typeof exports?module.exports=t():e.Papa=t()})(this,function r(){var n="undefined"!=typeof self?self:"undefined"!=typeof window?window:void 0!==n?n:{};var s=!n.document&&!!n.postMessage,a=n.IS_PAPA_WORKER||!1,o={},h=0,w={};function q(e){return 65279===e.charCodeAt(0)?e.slice(1):e}function u(e){this._handle=null,this._finished=!1,this._completed=!1,this._halted=!1,this._input=null,this._baseIndex=0,this._partialLine="",this._rowCount=0,this._start=0,this._nextChunk=null,this.isFirstChunk=!0,this._completeResults={data:[],errors:[],meta:{}},function(e){var t=E(e);t.chunkSize=parseInt(t.chunkSize),e.step||e.chunk||(t.chunkSize=null);this._handle=new i(t),(this._handle.streamer=this)._config=t}.call(this,e),this.parseChunk=function(t,e){var i=parseInt(this._config.skipFirstNLines)||0;if(this.isFirstChunk&&0<i){let e=this._config.newline;e||(r=this._config.quoteChar||'"',e=this._handle.guessLineEndings(t,r)),t=[...t.split(e).slice(i)].join(e)}this.isFirstChunk&&U(this._config.beforeFirstChunk)&&void 0!==(r=this._config.beforeFirstChunk(t))&&(t=r),this.isFirstChunk=!1,this._halted=!1;var i=this._partialLine+t,r=(this._partialLine="",this._handle.parse(i,this._baseIndex,!this._finished));if(!this._handle.paused()&&!this._handle.aborted()){t=r.meta.cursor,i=(this._finished||(this._partialLine=i.substring(t-this._baseIndex),this._baseIndex=t),r&&r.data&&(this._rowCount+=r.data.length),this._finished||this._config.preview&&this._rowCount>=this._config.preview);if(a)n.postMessage({results:r,workerId:w.WORKER_ID,finished:i});else if(U(this._config.chunk)&&!e){if(this._config.chunk(r,this._handle),this._handle.paused()||this._handle.aborted())return void(this._halted=!0);this._completeResults=r=void 0}return this._config.step||this._config.chunk||(this._completeResults.data=this._completeResults.data.concat(r.data),this._completeResults.errors=this._completeResults.errors.concat(r.errors),this._completeResults.meta=r.meta),this._completed||!i||!U(this._config.complete)||r&&r.meta.aborted||(this._config.complete(this._completeResults,this._input),this._completed=!0),i||r&&r.meta.paused||this._nextChunk(),r}this._halted=!0},this._sendError=function(e){U(this._config.error)?this._config.error(e):a&&this._config.error&&n.postMessage({workerId:w.WORKER_ID,error:e,finished:!1})}}function d(e){var r;(e=e||{}).chunkSize||(e.chunkSize=w.RemoteChunkSize),u.call(this,e),this._nextChunk=s?function(){this._readChunk(),this._chunkLoaded()}:function(){this._readChunk()},this.stream=function(e){this._input=e,this._nextChunk()},this._readChunk=function(){if(this._finished)this._chunkLoaded();else{if(r=new XMLHttpRequest,this._config.withCredentials&&(r.withCredentials=this._config.withCredentials),s||(r.onload=m(this._chunkLoaded,this),r.onerror=m(this._chunkError,this)),r.ontimeout=m(this._chunkTimeout,this),r.open(this._config.downloadRequestBody?"POST":"GET",this._input,!s),this._config.downloadTimeout&&!s&&(r.timeout=this._config.downloadTimeout),this._config.downloadRequestHeaders){var e,t=this._config.downloadRequestHeaders;for(e in t)r.setRequestHeader(e,t[e])}var i;this._config.chunkSize&&(i=this._start+this._config.chunkSize-1,r.setRequestHeader("Range","bytes="+this._start+"-"+i));try{r.send(this._config.downloadRequestBody)}catch(e){this._chunkError(e.message)}s&&0===r.status&&this._chunkError()}},this._chunkLoaded=function(){4===r.readyState&&(r.status<200||400<=r.status?this._chunkError():(this._start+=this._config.chunkSize||r.responseText.length,this._finished=!this._config.chunkSize||this._start>=(e=>null!==(e=e.getResponseHeader("Content-Range"))?parseInt(e.substring(e.lastIndexOf("/")+1)):-1)(r),this.parseChunk(r.responseText)))},this._chunkError=function(e){e=r.statusText||e;this._sendError(new Error(e))},this._chunkTimeout=function(){this._chunkError("Request timed out after "+this._config.downloadTimeout+"ms")}}function l(e){(e=e||{}).chunkSize||(e.chunkSize=w.LocalChunkSize),u.call(this,e);var i,r,n="undefined"!=typeof FileReader;this.stream=function(e){this._input=e,r=e.slice||e.webkitSlice||e.mozSlice,n?((i=new FileReader).onload=m(this._chunkLoaded,this),i.onerror=m(this._chunkError,this)):i=new FileReaderSync,this._nextChunk()},this._nextChunk=function(){this._finished||this._config.preview&&!(this._rowCount<this._config.preview)||this._readChunk()},this._readChunk=function(){var e=this._input,t=(this._config.chunkSize&&(t=Math.min(this._start+this._config.chunkSize,this._input.size),e=r.call(e,this._start,t)),i.readAsText(e,this._config.encoding));n||this._chunkLoaded({target:{result:t}})},this._chunkLoaded=function(e){this._start+=this._config.chunkSize,this._finished=!this._config.chunkSize||this._start>=this._input.size,this.parseChunk(e.target.result)},this._chunkError=function(){this._sendError(i.error)}}function f(e){var i;u.call(this,e=e||{}),this.stream=function(e){return i=e,this._nextChunk()},this._nextChunk=function(){var e,t;if(!this._finished)return e=this._config.chunkSize,i=e?(t=i.substring(0,e),i.substring(e)):(t=i,""),this._finished=!i,this.parseChunk(t)}}function c(e){u.call(this,e=e||{});var t=[],i=!0,r=!1;this.pause=function(){u.prototype.pause.apply(this,arguments),this._input.pause()},this.resume=function(){u.prototype.resume.apply(this,arguments),this._input.resume()},this.stream=function(e){this._input=e,this._input.on("data",this._streamData),this._input.on("end",this._streamEnd),this._input.on("error",this._streamError)},this._checkIsFinished=function(){r&&1===t.length&&(this._finished=!0)},this._nextChunk=function(){this._checkIsFinished(),t.length?this.parseChunk(t.shift()):i=!0},this._streamData=m(function(e){try{t.push("string"==typeof e?e:e.toString(this._config.encoding)),i&&(i=!1,this._checkIsFinished(),this.parseChunk(t.shift()))}catch(e){this._streamError(e)}},this),this._streamError=m(function(e){this._streamCleanUp(),this._sendError(e)},this),this._streamEnd=m(function(){this._streamCleanUp(),r=!0,this._streamData("")},this),this._streamCleanUp=m(function(){this._input.removeListener("data",this._streamData),this._input.removeListener("end",this._streamEnd),this._input.removeListener("error",this._streamError)},this)}function i(m){var n,s,a,t,o=Math.pow(2,53),h=-o,u=/^\s*-?(\d+\.?|\.\d+|\d+\.\d+)([eE][-+]?\d+)?\s*$/,d=/^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/,i=this,r=0,l=0,f=!1,e=!1,c=[],p={data:[],errors:[],meta:{}};function y(e){return"greedy"===m.skipEmptyLines?""===e.join("").trim():1===e.length&&0===e[0].length}function _(){if(p&&a&&(k("Delimiter","UndetectableDelimiter","Unable to auto-detect delimiting character; defaulted to '"+w.DefaultDelimiter+"'"),a=!1),m.skipEmptyLines&&(p.data=p.data.filter(function(e){return!y(e)})),g()){if(p)if(Array.isArray(p.data[0])){for(var e=0;g()&&e<p.data.length;e++)p.data[e].forEach(t);p.data.splice(0,1)}else p.data.forEach(t);function t(e){c.push(e)}}function i(e,t){for(var i=m.header?{}:[],r=0;r<e.length;r++){var n=r,s=e[r],s=((e,t)=>(e=>(m.dynamicTypingFunction&&void 0===m.dynamicTyping[e]&&(m.dynamicTyping[e]=m.dynamicTypingFunction(e)),!0===(m.dynamicTyping[e]||m.dynamicTyping)))(e)?"true"===t||"TRUE"===t||"false"!==t&&"FALSE"!==t&&((e=>{if(u.test(e)){e=parseFloat(e);if(h<e&&e<o)return 1}})(t)?parseFloat(t):d.test(t)?new Date(t):""===t?null:t):t)(n=m.header?r>=c.length?"__parsed_extra":c[r]:n,s=m.transform?m.transform(s,n):s);"__parsed_extra"===n?(i[n]=i[n]||[],i[n].push(s)):i[n]=s}return m.header&&(r>c.length?k("FieldMismatch","TooManyFields","Too many fields: expected "+c.length+" fields but parsed "+r,l+t):r<c.length&&k("FieldMismatch","TooFewFields","Too few fields: expected "+c.length+" fields but parsed "+r,l+t)),i}var r;p&&(m.header||m.dynamicTyping||m.transform)&&(r=1,!p.data.length||Array.isArray(p.data[0])?(p.data=p.data.map(i),r=p.data.length):p.data=i(p.data,0),m.header&&p.meta&&(p.meta.fields=c),l+=r)}function g(){return m.header&&0===c.length}function k(e,t,i,r){e={type:e,code:t,message:i};void 0!==r&&(e.row=r),p.errors.push(e)}U(m.step)&&(t=m.step,m.step=function(e){p=e,g()?_():(_(),0!==p.data.length&&(r+=e.data.length,m.preview&&r>m.preview?s.abort():(p.data=p.data[0],t(p,i))))}),this.parse=function(e,t,i){var r=m.quoteChar||'"',r=(m.newline||(m.newline=this.guessLineEndings(e,r)),a=!1,m.delimiter?U(m.delimiter)&&(m.delimiter=m.delimiter(e),p.meta.delimiter=m.delimiter):((r=((e,t,i,r,n)=>{var s,a,o,h;n=n||[",","\t","|",";",w.RECORD_SEP,w.UNIT_SEP];for(var u=0;u<n.length;u++){for(var d,l=n[u],f=0,c=0,p=0,_=(o=void 0,new b({comments:r,delimiter:l,newline:t,preview:10}).parse(e)),g=0;g<_.data.length;g++)i&&y(_.data[g])?p++:(d=_.data[g].length,c+=d,void 0===o?o=d:0<d&&(f+=Math.abs(d-o),o=d));0<_.data.length&&(c/=_.data.length-p),1.99<c&&(void 0===a||f<a||f===a&&h<c)&&(a=f,s=l,h=c)}return{successful:!!(m.delimiter=s),bestDelimiter:s}})(e,m.newline,m.skipEmptyLines,m.comments,m.delimitersToGuess)).successful?m.delimiter=r.bestDelimiter:(a=!0,m.delimiter=w.DefaultDelimiter),p.meta.delimiter=m.delimiter),E(m));return r.header=g(),m.preview&&m.header&&r.preview++,n=e,s=new b(r),p=s.parse(n,t,i),_(),f?{meta:{paused:!0}}:p||{meta:{paused:!1}}},this.paused=function(){return f},this.pause=function(){f=!0,s.abort(),n=U(m.chunk)?"":n.substring(s.getCharIndex())},this.resume=function(){i.streamer._halted?(f=!1,i.streamer.parseChunk(n,!0)):setTimeout(i.resume,3)},this.aborted=function(){return e},this.abort=function(){e=!0,s.abort(),p.meta.aborted=!0,U(m.complete)&&m.complete(p),n=""},this.guessLineEndings=function(e,t){e=e.substring(0,1048576);var t=new RegExp(P(t)+"([^]*?)"+P(t),"gm"),i=(e=e.replace(t,"")).split("\r"),t=e.split("\n"),e=1<t.length&&t[0].length<i[0].length;if(1===i.length||e)return"\n";for(var r=0,n=0;n<i.length;n++)"\n"===i[n][0]&&r++;return r>=i.length/2?"\r\n":"\r"}}function P(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function b(C){var S=(C=C||{}).delimiter,O=C.newline,x=C.comments,T=C.step,I=C.preview,A=C.fastMode,D=null,L=!1,F=null==C.quoteChar?'"':C.quoteChar,z=F;if(void 0!==C.escapeChar&&(z=C.escapeChar),("string"!=typeof S||-1<w.BAD_DELIMITERS.indexOf(S))&&(S=","),x===S)throw new Error("Comment character same as delimiter");!0===x?x="#":("string"!=typeof x||-1<w.BAD_DELIMITERS.indexOf(x))&&(x=!1),"\n"!==O&&"\r"!==O&&"\r\n"!==O&&(O="\n");var M=0,j=!1;this.parse=function(i,t,r){if("string"!=typeof i)throw new Error("Input must be a string");var n=i.length,e=S.length,s=O.length,a=x.length,o=U(T),h=[],u=[],d=[],l=M=0;if(!i)return v();if(A||!1!==A&&-1===i.indexOf(F)){for(var f=i.split(O),c=0;c<f.length;c++){if(d=f[c],M+=d.length,c!==f.length-1)M+=O.length;else if(r)return v();if(!x||d.substring(0,a)!==x){if(o){if(h=[],k(d.split(S)),R(),j)return v()}else k(d.split(S));if(I&&I<=c)return h=h.slice(0,I),v(!0)}}return v()}for(var p=i.indexOf(S,M),_=i.indexOf(O,M),g=new RegExp(P(z)+P(F),"g"),m=i.indexOf(F,M);;)if(i[M]===F)for(m=M,M++;;){if(-1===(m=i.indexOf(F,m+1)))return r||u.push({type:"Quotes",code:"MissingQuotes",message:"Quoted field unterminated",row:h.length,index:M}),b();if(m===n-1)return b(i.substring(M,m).replace(g,F));if(F===z&&i[m+1]===z)m++;else if(F===z||0===m||i[m-1]!==z){-1!==p&&p<m+1&&(p=i.indexOf(S,m+1));var y=w(-1===(_=-1!==_&&_<m+1?i.indexOf(O,m+1):_)?p:Math.min(p,_));if(i.substr(m+1+y,e)===S){d.push(i.substring(M,m).replace(g,F)),i[M=m+1+y+e]!==F&&(m=i.indexOf(F,M)),-1!==p&&p<M&&(p=i.indexOf(S,M)),-1!==_&&_<M&&(_=i.indexOf(O,M));break}y=w(_);if(i.substring(m+1+y,m+1+y+s)===O){if(d.push(i.substring(M,m).replace(g,F)),E(m+1+y+s),-1!==p&&p<M&&(p=i.indexOf(S,M)),m=i.indexOf(F,M),o&&(R(),j))return v();if(I&&h.length>=I)return v(!0);break}u.push({type:"Quotes",code:"InvalidQuotes",message:"Trailing quote on quoted field is malformed",row:h.length,index:M}),m++}}else if(x&&0===d.length&&i.substring(M,M+a)===x){if(-1===_)return v();M=_+s,_=i.indexOf(O,M),-1!==p&&p<M&&(p=i.indexOf(S,M))}else if(-1!==p&&(p<_||-1===_))d.push(i.substring(M,p)),M=p+e,p=i.indexOf(S,M);else{if(-1===_)break;if(d.push(i.substring(M,_)),E(_+s),o&&(R(),j))return v();if(I&&h.length>=I)return v(!0)}return b();function k(e){h.push(e),l=M}function w(e){var t=0;return t=-1!==e&&(e=i.substring(m+1,e))&&""===e.trim()?e.length:t}function b(e){return r||(void 0===e&&(e=i.substring(M)),d.push(e),M=n,k(d),o&&R()),v()}function E(e){M=e,k(d),d=[],_=i.indexOf(O,M)}function v(e){if(C.header&&!t&&h.length&&!L){var s=h[0],a=Object.create(null),o=new Set(s);let n=!1;for(let r=0;r<s.length;r++){let i=q(s[r]);if(a[i=U(C.transformHeader)?C.transformHeader(i,r):i]){let e,t=a[i];for(;e=i+"_"+t,t++,o.has(e););o.add(e),s[r]=e,a[i]++,n=!0,(D=null===D?{}:D)[e]=i}else a[i]=1,s[r]=i;o.add(i)}n&&console.warn("Duplicate headers found and renamed."),L=!0}return{data:h,errors:u,meta:{delimiter:S,linebreak:O,aborted:j,truncated:!!e,cursor:l+(t||0),renamedHeaders:D}}}function R(){T(v()),h=[],u=[]}},this.abort=function(){j=!0},this.getCharIndex=function(){return M}}function p(e){var t=e.data,i=o[t.workerId],r=!1;if(t.error)i.userError(t.error,t.file);else if(t.results&&t.results.data){var n={abort:function(){r=!0,_(t.workerId,{data:[],errors:[],meta:{aborted:!0}})},pause:g,resume:g};if(U(i.userStep)){for(var s=0;s<t.results.data.length&&(i.userStep({data:t.results.data[s],errors:t.results.errors,meta:t.results.meta},n),!r);s++);delete t.results}else U(i.userChunk)&&(i.userChunk(t.results,n,t.file),delete t.results)}t.finished&&!r&&_(t.workerId,t.results)}function _(e,t){var i=o[e];U(i.userComplete)&&i.userComplete(t),i.terminate(),delete o[e]}function g(){throw new Error("Not implemented.")}function E(e){if("object"!=typeof e||null===e)return e;var t,i=Array.isArray(e)?[]:{};for(t in e)i[t]=E(e[t]);return i}function m(e,t){return function(){e.apply(t,arguments)}}function U(e){return"function"==typeof e}return w.parse=function(e,t){var i=(t=t||{}).dynamicTyping||!1;U(i)&&(t.dynamicTypingFunction=i,i={});if(t.dynamicTyping=i,t.transform=!!U(t.transform)&&t.transform,void 0!==t.downloadTimeout){var i=parseInt(t.downloadTimeout);if(isNaN(i))throw new Error("Config downloadTimeout value ("+t.downloadTimeout+") not parsable by parseInt(val).");t.downloadTimeout=i}if(!t.worker||!w.WORKERS_SUPPORTED)return i=null,w.NODE_STREAM_INPUT,"string"==typeof e?(e=q(e),i=new(t.download?d:f)(t)):!0===e.readable&&U(e.read)&&U(e.on)?i=new c(t):(n.File&&e instanceof File||e instanceof Object)&&(i=new l(t)),i.stream(e);(i=(()=>{var e;return!!w.WORKERS_SUPPORTED&&(e=(()=>{var e=n.URL||n.webkitURL||null,t=r.toString();return w.BLOB_URL||(w.BLOB_URL=e.createObjectURL(new Blob(["var global = (function() { if (typeof self !== 'undefined') { return self; } if (typeof window !== 'undefined') { return window; } if (typeof global !== 'undefined') { return global; } return {}; })(); global.IS_PAPA_WORKER=true; ","(",t,")();"],{type:"text/javascript"})))})(),(e=new n.Worker(e)).onmessage=p,e.id=h++,o[e.id]=e)})()).userStep=t.step,i.userChunk=t.chunk,i.userComplete=t.complete,i.userError=t.error,t.step=U(t.step),t.chunk=U(t.chunk),t.complete=U(t.complete),t.error=U(t.error),delete t.worker,i.postMessage({input:e,config:t,workerId:i.id})},w.unparse=function(e,t){var s=!1,g=!0,m=",",y="\r\n",a='"',o=a+a,i=!1,r=null,h=!1,u=((()=>{if("object"==typeof t){if("string"!=typeof t.delimiter||w.BAD_DELIMITERS.filter(function(e){return-1!==t.delimiter.indexOf(e)}).length||(m=t.delimiter),"boolean"!=typeof t.quotes&&"function"!=typeof t.quotes&&!Array.isArray(t.quotes)||(s=t.quotes),"boolean"!=typeof t.skipEmptyLines&&"string"!=typeof t.skipEmptyLines||(i=t.skipEmptyLines),"string"==typeof t.newline&&(y=t.newline),"string"==typeof t.quoteChar&&(a=t.quoteChar,o=a+a),"boolean"==typeof t.header&&(g=t.header),Array.isArray(t.columns)){if(0===t.columns.length)throw new Error("Option columns is empty");r=t.columns}void 0!==t.escapeChar&&(o=t.escapeChar+a),t.escapeFormulae instanceof RegExp?h=t.escapeFormulae:"boolean"==typeof t.escapeFormulae&&t.escapeFormulae&&(h=/^[=+\-@\t\r].*$/)}})(),new RegExp(P(a),"g"));"string"==typeof e&&(e=JSON.parse(e));if(Array.isArray(e)){if(!e.length)return n(r,e,i);if(Array.isArray(e[0]))return n(null,e,i);if("object"==typeof e[0])return n(r||Object.keys(e[0]),e,i)}else if("object"==typeof e)return"string"==typeof e.data&&(e.data=JSON.parse(e.data)),Array.isArray(e.data)&&(e.fields||(e.fields=e.meta&&e.meta.fields||r),e.fields||(e.fields=Array.isArray(e.data[0])?e.fields:"object"==typeof e.data[0]?Object.keys(e.data[0]):[]),Array.isArray(e.data[0])||"object"==typeof e.data[0]||(e.data=[e.data])),n(e.fields||[],e.data||[],i);throw new Error("Unable to serialize unrecognized input");function n(e,t,i){var r="",n=("string"==typeof e&&(e=JSON.parse(e)),"string"==typeof t&&(t=JSON.parse(t)),Array.isArray(e)&&0<e.length),s=!Array.isArray(t[0]);if(n&&g){for(var a=0;a<e.length;a++)0<a&&(r+=m),r+=k(e[a],a);0<t.length&&(r+=y)}for(var o=0;o<t.length;o++){var h=(n?e:t[o]).length,u=!1,d=n?0===Object.keys(t[o]).length:0===t[o].length;if(i&&!n&&(u="greedy"===i?""===t[o].join("").trim():1===t[o].length&&(null==t[o][0]||0===t[o][0].length)),"greedy"===i&&n){for(var l=[],f=0;f<h;f++){var c=s?e[f]:f;l.push(t[o][c])}u=""===l.join("").trim()}if(!u){for(var p=0;p<h;p++){0<p&&!d&&(r+=m);var _=n&&s?e[p]:p;r+=k(t[o][_],p)}o<t.length-1&&(!i||0<h&&!d)&&(r+=y)}}return r}function k(e,t){var i,r,n;return null==e?"":e.constructor===Date?isNaN(e.getTime())?"":e.toISOString():(n=!1,i=e.toString(),h&&"number"!=typeof e&&"bigint"!=typeof e&&"boolean"!=typeof e&&h.test(i)&&(e=i="'"+i,n=!0),r=i.replace(u,o),(n=n||!0===s||"function"==typeof s&&s(e,t)||Array.isArray(s)&&s[t]||((e,t)=>{for(var i=0;i<t.length;i++)if(-1<e.indexOf(t[i]))return!0;return!1})(r,w.BAD_DELIMITERS)||-1<r.indexOf(m)||-1<i.indexOf(a)||" "===r.charAt(0)||" "===r.charAt(r.length-1))?a+r+a:r)}},w.RECORD_SEP=String.fromCharCode(30),w.UNIT_SEP=String.fromCharCode(31),w.BYTE_ORDER_MARK="\ufeff",w.BAD_DELIMITERS=["\r","\n",'"',w.BYTE_ORDER_MARK],w.WORKERS_SUPPORTED=!s&&!!n.Worker,w.NODE_STREAM_INPUT=1,w.LocalChunkSize=10485760,w.RemoteChunkSize=5242880,w.DefaultDelimiter=",",w.Parser=b,w.ParserHandle=i,w.NetworkStreamer=d,w.FileStreamer=l,w.StringStreamer=f,w.ReadableStreamStreamer=c,a&&(n.onmessage=function(e){e=e.data;void 0===w.WORKER_ID&&e&&(w.WORKER_ID=e.workerId);"string"==typeof e.input?n.postMessage({workerId:w.WORKER_ID,results:w.parse(e.input,e.config),finished:!0}):(n.File&&e.input instanceof File||e.input instanceof Object)&&(e=w.parse(e.input,e.config))&&n.postMessage({workerId:w.WORKER_ID,results:e,finished:!0})}),(d.prototype=Object.create(u.prototype)).constructor=d,(l.prototype=Object.create(u.prototype)).constructor=l,(f.prototype=Object.create(f.prototype)).constructor=f,(c.prototype=Object.create(u.prototype)).constructor=c,w});
+</script>
+  <script>
+/*
+ * SolarSquare Presales Dashboard — calculation & validation layer.
+ *
+ * Pure functions, no DOM access. Works in the browser (window.PresalesCalc)
+ * and in Node (require('./calc.js')) so numbers can be tested independently
+ * of the UI.
+ *
+ * GRAIN: one CSV row = one unique lead_id. Every count below is a count of
+ * unique lead_ids. There is no meeting-instance logic anywhere.
+ *
+ * DATES: the SQL extract is already in IST. Timestamps are held as IST
+ * wall-clock values (no extra +5:30 shift). Only values carrying an explicit
+ * timezone suffix (Z / +hh:mm) are converted to IST.
+ * All day arithmetic uses integer "day numbers" (days since 1970-01-01 of the
+ * IST calendar date), so differences are calendar-day differences.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.PresalesCalc = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // ---------------------------------------------------------------- constants
+  var REQUIRED_COLUMNS = [
+    'lead_id', 'lead_created_timestamp_ist', 'cohort_month', 'cluster', 'channel', 'lrm',
+    'heuristic_score', 'current_stage', 'current_status', 'disposition_bucket',
+    'meeting_schedule_date_ist', 'meeting_done_date_ist', 'order_closure_date_ist',
+    'lead_created_day_type', 'meeting_schedule_day_type', 'meeting_done_day_type',
+    'order_closure_day_type', 'meeting_schedule_slot', 'meeting_done_slot',
+    'order_closure_slot', 'meeting_rtm_status'
+  ];
+
+  var SCORE_LABELS = ['0–2', '2–5', '5–7', '7–9', '9–10', 'Unscored'];
+
+  // Ageing brackets: non-overlapping event-age intervals. minAge = how old a
+  // lead must be (in days at the As-of Date) to enter that bracket's denominator.
+  var AGEING_BRACKETS = [
+    { label: 'D+1', lo: 0, hi: 1, minAge: 1 },
+    { label: 'D+3', lo: 1, hi: 3, minAge: 3 },
+    { label: 'D+7', lo: 3, hi: 7, minAge: 7 },
+    { label: 'D+15', lo: 7, hi: 15, minAge: 15 },
+    { label: 'D+22', lo: 15, hi: 22, minAge: 22 },
+    { label: 'D+30', lo: 22, hi: 30, minAge: 30 },
+    { label: 'D+60', lo: 30, hi: 60, minAge: 60 },
+    { label: 'Above D+60', lo: 60, hi: Infinity, minAge: 61 }
+  ];
+  // bracket k contains diff when diff > lo && diff <= hi, except the first which is 0 <= diff <= 1.
+
+  var TIMING_KEYS = [
+    'sameRtm', 'samePre', 'd1', 'd2', 'd3', 'd4', 'd5', 'above5', 'notDone', 'invalid'
+  ];
+  var TIMING_LABELS = {
+    sameRtm: 'Same Day — RTM', samePre: 'Same Day — Prescheduled',
+    d1: 'D+1', d2: 'D+2', d3: 'D+3', d4: 'D+4', d5: 'D+5', above5: 'Above D+5',
+    notDone: 'Not Done', invalid: 'Invalid MD Before MS'
+  };
+  var TIMING_MATURITY_DAYS = 5;
+
+  var SLOT_ORDER = ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4'];
+  var MONTHS = {
+    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5, july: 6,
+    august: 7, september: 8, october: 9, november: 10, december: 11,
+    jan: 0, feb: 1, mar: 2, apr: 3, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11
+  };
+  var MS_PER_DAY = 86400000;
+  var IST_OFFSET_MS = 19800000; // 5h30m — only applied to values with an explicit tz suffix
+
+  // -------------------------------------------------------------- date parsing
+  function makeWall(y, mo, d, h, mi, s, shiftMs) {
+    var ms = Date.UTC(y, mo, d, h, mi, s);
+    var chk = new Date(ms);
+    if (chk.getUTCFullYear() !== y || chk.getUTCMonth() !== mo || chk.getUTCDate() !== d) return null;
+    ms += shiftMs || 0;
+    var day = Math.floor(ms / MS_PER_DAY);
+    return { ms: ms, day: day, sec: Math.round((ms - day * MS_PER_DAY) / 1000) };
+  }
+
+  /**
+   * Parse a source date/time into IST wall-clock {ms, day, sec} or null.
+   * Supported:
+   *   "September 1, 2026, 12:01 AM"  (the format this extract uses; IST wall-clock)
+   *   "September 1, 2026"            (date only)
+   *   "2026-09-01 00:01:00", "2026-09-01T00:01:00" (IST wall-clock)
+   *   "2026-08-31T18:31:00Z", "...+00:00" (instant -> converted to IST)
+   */
+  function parseDateTime(raw) {
+    if (raw === null || raw === undefined) return null;
+    var s = String(raw).trim();
+    if (!s) return null;
+    var m = /^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp][Mm])?)?$/.exec(s);
+    if (m) {
+      var mon = MONTHS[m[1].toLowerCase()];
+      if (mon === undefined) return null;
+      var h = m[4] !== undefined ? +m[4] : 0;
+      if (m[7]) {
+        if (h < 1 || h > 12) return null;
+        h = h % 12;
+        if (/p/i.test(m[7])) h += 12;
+      }
+      if (h > 23 || (m[5] !== undefined && +m[5] > 59)) return null;
+      return makeWall(+m[3], mon, +m[2], h, m[5] !== undefined ? +m[5] : 0, m[6] !== undefined ? +m[6] : 0, 0);
+    }
+    m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?\s*(Z|[+-]\d{2}:?\d{2})?$/i.exec(s);
+    if (m) {
+      var shift = 0;
+      if (m[7]) {
+        var off = 0;
+        if (!/^z$/i.test(m[7])) {
+          var sign = m[7][0] === '-' ? -1 : 1;
+          var digits = m[7].slice(1).replace(':', '');
+          off = sign * ((+digits.slice(0, 2)) * 60 + (+digits.slice(2, 4))) * 60000;
+        }
+        shift = IST_OFFSET_MS - off; // instant (wall - off) -> IST wall
+      }
+      return makeWall(+m[1], +m[2] - 1, +m[3], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0, m[6] ? +m[6] : 0, shift);
+    }
+    return null;
+  }
+
+  function dayTypeOfDay(day) { var dow = (day + 4) % 7; return (dow === 0 || dow === 6) ? 'Weekend' : 'Weekday'; } // 1970-01-01 = Thursday
+  function slotOfSec(sec) { return sec <= 43200 ? 'Slot 1' : sec <= 54000 ? 'Slot 2' : sec <= 64800 ? 'Slot 3' : 'Slot 4'; }
+  function dayToISO(day) { return new Date(day * MS_PER_DAY).toISOString().slice(0, 10); }
+  function isoToDay(iso) { var p = parseDateTime(iso); return p ? p.day : null; }
+  function todayIstDay() { return Math.floor((Date.now() + IST_OFFSET_MS) / MS_PER_DAY); }
+
+  function pct(n, d) { return d > 0 ? n / d : null; }
+  function txt(v) { return v === null || v === undefined ? '' : String(v).trim(); }
+
+  // ------------------------------------------------------------ load & prepare
+  /**
+   * Validate headers and convert raw CSV objects into prepared lead rows.
+   * Duplicate / blank lead_ids are excluded from metrics but COUNTED and reported.
+   * Returns { error } if required columns are missing (metrics must not run).
+   */
+  function prepareRows(rawRows, headers) {
+    var hdr = headers || (rawRows.length ? Object.keys(rawRows[0]) : []);
+    var missing = REQUIRED_COLUMNS.filter(function (c) { return hdr.indexOf(c) === -1; });
+    if (missing.length) return { error: 'Required column(s) missing from CSV: ' + missing.join(', ') };
+
+    var rows = [], seen = Object.create(null);
+    var load = {
+      rowsLoaded: rawRows.length, blankIds: 0, duplicateRows: 0, duplicateIds: 0,
+      uniqueIds: 0, headers: hdr, extraColumns: hdr.filter(function (c) { return REQUIRED_COLUMNS.indexOf(c) === -1; }),
+      unparseableDates: { lead_created_timestamp_ist: 0, meeting_schedule_date_ist: 0, meeting_done_date_ist: 0, order_closure_date_ist: 0 },
+      duplicateSample: []
+    };
+    var dupSeen = Object.create(null);
+
+    for (var i = 0; i < rawRows.length; i++) {
+      var raw = rawRows[i];
+      var id = txt(raw.lead_id);
+      if (!id) { load.blankIds++; continue; }
+      if (seen[id]) {
+        load.duplicateRows++;
+        if (!dupSeen[id]) { dupSeen[id] = 1; load.duplicateIds++; if (load.duplicateSample.length < 10) load.duplicateSample.push(id); }
+        continue;
+      }
+      seen[id] = 1;
+
+      var c = parseDateTime(raw.lead_created_timestamp_ist);
+      var ms = parseDateTime(raw.meeting_schedule_date_ist);
+      var md = parseDateTime(raw.meeting_done_date_ist);
+      var or = parseDateTime(raw.order_closure_date_ist);
+      if (!c && txt(raw.lead_created_timestamp_ist)) load.unparseableDates.lead_created_timestamp_ist++;
+      if (!ms && txt(raw.meeting_schedule_date_ist)) load.unparseableDates.meeting_schedule_date_ist++;
+      if (!md && txt(raw.meeting_done_date_ist)) load.unparseableDates.meeting_done_date_ist++;
+      if (!or && txt(raw.order_closure_date_ist)) load.unparseableDates.order_closure_date_ist++;
+
+      // score classification
+      var sRaw = txt(raw.heuristic_score), score = null, scoreClass;
+      if (sRaw === '' || /^(null|nan|na|n\/a|none)$/i.test(sRaw)) scoreClass = 'unscored';
+      else {
+        score = Number(sRaw);
+        if (!isFinite(score)) { scoreClass = 'nonnumeric'; score = null; }
+        else if (score < 0 || score > 10) scoreClass = 'outofrange';
+        else scoreClass = 'ok';
+      }
+      var bucket = -1;
+      if (scoreClass === 'ok') bucket = score <= 2 ? 0 : score <= 5 ? 1 : score <= 7 ? 2 : score <= 9 ? 3 : 4;
+      else if (scoreClass === 'unscored') bucket = 5;
+
+      var cohortParsed = parseDateTime(raw.cohort_month);
+      var cohortKey = cohortParsed ? dayToISO(cohortParsed.day).slice(0, 7) : (txt(raw.cohort_month) || '(Missing)');
+      var cohortLabel = cohortParsed
+        ? new Date(cohortParsed.ms).toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+        : cohortKey;
+
+      rows.push({
+        id: id, raw: raw,
+        cluster: txt(raw.cluster), channel: txt(raw.channel), lrm: txt(raw.lrm),
+        cohortKey: cohortKey, cohortLabel: cohortLabel,
+        score: score, scoreClass: scoreClass, bucket: bucket,
+        disp: txt(raw.disposition_bucket) || '(Blank)',
+        cDay: c ? c.day : null, cSec: c ? c.sec : null,
+        msDay: ms ? ms.day : null, msSec: ms ? ms.sec : null,
+        mdDay: md ? md.day : null, mdSec: md ? md.sec : null,
+        orDay: or ? or.day : null, orSec: or ? or.sec : null,
+        cDT: txt(raw.lead_created_day_type), msDT: txt(raw.meeting_schedule_day_type),
+        mdDT: txt(raw.meeting_done_day_type), orDT: txt(raw.order_closure_day_type),
+        msSlot: txt(raw.meeting_schedule_slot), mdSlot: txt(raw.meeting_done_slot), orSlot: txt(raw.order_closure_slot),
+        rtm: txt(raw.meeting_rtm_status)
+      });
+    }
+    load.uniqueIds = rows.length;
+    return { rows: rows, load: load };
+  }
+
+  // ------------------------------------------------------------------ filters
+  function filterOptions(rows) {
+    var cl = Object.create(null), ch = Object.create(null), co = Object.create(null);
+    rows.forEach(function (r) {
+      cl[r.cluster || '(Missing)'] = 1; ch[r.channel || '(Missing)'] = 1;
+      co[r.cohortKey] = r.cohortLabel;
+    });
+    var sort = function (a, b) { return a.localeCompare(b, 'en', { sensitivity: 'base' }); };
+    return {
+      cluster: Object.keys(cl).sort(sort),
+      channel: Object.keys(ch).sort(sort),
+      cohort: Object.keys(co).sort().map(function (k) { return { key: k, label: co[k] }; })
+    };
+  }
+
+  /** f = {cluster, channel, cohort}; null / 'All' = no restriction. */
+  function filterRows(rows, f) {
+    var cl = f && f.cluster && f.cluster !== 'All' ? f.cluster : null;
+    var ch = f && f.channel && f.channel !== 'All' ? f.channel : null;
+    var co = f && f.cohort && f.cohort !== 'All' ? f.cohort : null;
+    if (!cl && !ch && !co) return rows;
+    return rows.filter(function (r) {
+      return (!cl || (r.cluster || '(Missing)') === cl) &&
+        (!ch || (r.channel || '(Missing)') === ch) &&
+        (!co || r.cohortKey === co);
+    });
+  }
+
+  // ------------------------------------------------------- funnel accumulator
+  function newFunnel() {
+    return { total: 0, ms: 0, md: 0, or: 0, msmd: 0, mdor: 0, mdBeforeMs: 0, orBeforeMd: 0, rtm: 0, presch: 0, notSched: 0, otherRtm: 0 };
+  }
+  /** One lead adds at most 1 to every field. */
+  function addFunnel(f, r) {
+    f.total++;
+    var hasMs = r.msDay !== null, hasMd = r.mdDay !== null, hasOr = r.orDay !== null;
+    if (hasMs) f.ms++;
+    if (hasMd) f.md++;
+    if (hasOr) f.or++;
+    if (hasMs && hasMd) { if (r.mdDay >= r.msDay) f.msmd++; else f.mdBeforeMs++; }   // calendar-date comparison
+    if (hasMd && hasOr) { if (r.orDay >= r.mdDay) f.mdor++; else f.orBeforeMd++; }
+    if (r.rtm === 'RTM') f.rtm++; else if (r.rtm === 'Prescheduled') f.presch++;
+    else if (r.rtm === 'Not Scheduled') f.notSched++; else f.otherRtm++;
+  }
+  function funnelRates(f) {
+    return {
+      leadToMs: pct(f.ms, f.total), leadToMd: pct(f.md, f.total), leadToOr: pct(f.or, f.total),
+      msToMd: pct(f.msmd, f.ms), mdToOr: pct(f.mdor, f.md)
+    };
+  }
+
+  function groupSort(a, b) { return a.localeCompare(b, 'en', { sensitivity: 'base' }); }
+
+  // ---------------------------------------------------------------- metric A
+  function scoreDistribution(rows) {
+    var map = Object.create(null), total = [0, 0, 0, 0, 0, 0], invalid = { outOfRange: 0, nonNumeric: 0 };
+    rows.forEach(function (r) {
+      if (r.bucket < 0) { if (r.scoreClass === 'outofrange') invalid.outOfRange++; else invalid.nonNumeric++; return; }
+      var k = r.lrm || '(Missing)';
+      var e = map[k] || (map[k] = { lrm: k, n: 0, counts: [0, 0, 0, 0, 0, 0] });
+      e.n++; e.counts[r.bucket]++; total[r.bucket]++;
+    });
+    var list = Object.keys(map).sort(groupSort).map(function (k) { return map[k]; });
+    var totalN = total.reduce(function (a, b) { return a + b; }, 0);
+    return { labels: SCORE_LABELS, rows: list, total: { n: totalN, counts: total }, invalid: invalid };
+  }
+
+  // ---------------------------------------------------------------- metric B
+  function dispColumns(rows) {
+    var c = Object.create(null);
+    rows.forEach(function (r) { c[r.disp] = (c[r.disp] || 0) + 1; });
+    return Object.keys(c).sort(function (a, b) { return c[b] - c[a] || groupSort(a, b); });
+  }
+  function dispositionDistribution(rows, cols) {
+    var map = Object.create(null), total = Object.create(null);
+    cols.forEach(function (c) { total[c] = 0; });
+    var totalN = 0;
+    rows.forEach(function (r) {
+      var k = r.lrm || '(Missing)';
+      var e = map[k] || (map[k] = { lrm: k, n: 0, counts: Object.create(null) });
+      e.n++; e.counts[r.disp] = (e.counts[r.disp] || 0) + 1;
+      total[r.disp] = (total[r.disp] || 0) + 1; totalN++;
+    });
+    var list = Object.keys(map).sort(groupSort).map(function (k) { return map[k]; });
+    return { columns: cols, rows: list, total: { n: totalN, counts: total } };
+  }
+
+  // ---------------------------------------------------------------- metric C
+  function inBracket(b, idx, diff) {
+    if (idx === 0) return diff >= 0 && diff <= b.hi;
+    return diff > b.lo && diff <= b.hi;
+  }
+  /**
+   * eventKey: 'msDay' or 'mdDay'. Denominator per bracket = leads at least
+   * minAge days old at the As-of Date. Numerator = those leads whose event
+   * (on/before As-of, not before creation) fell in that exact interval.
+   */
+  function ageing(rows, eventKey, asofDay) {
+    var den = AGEING_BRACKETS.map(function () { return 0; });
+    var num = den.slice();
+    var meta = { withEvent: 0, beforeCreation: 0, afterAsof: 0, noCreationDate: 0 };
+    rows.forEach(function (r) {
+      if (r.cDay === null) { meta.noCreationDate++; return; }
+      var age = asofDay - r.cDay;
+      var ev = r[eventKey], diff = null, usable = false;
+      if (ev !== null) {
+        meta.withEvent++;
+        diff = ev - r.cDay;
+        if (diff < 0) meta.beforeCreation++;
+        else if (ev > asofDay) meta.afterAsof++;
+        else usable = true;
+      }
+      for (var i = 0; i < AGEING_BRACKETS.length; i++) {
+        var b = AGEING_BRACKETS[i];
+        if (age >= b.minAge) {
+          den[i]++;
+          if (usable && inBracket(b, i, diff)) num[i]++;
+        }
+      }
+    });
+    return {
+      brackets: AGEING_BRACKETS.map(function (b, i) { return { label: b.label, minAge: b.minAge, num: num[i], den: den[i], pct: pct(num[i], den[i]) }; }),
+      meta: meta
+    };
+  }
+
+  // ---------------------------------------------------------------- metric D
+  function dayTypeGroups(rows, keyField) {
+    var map = Object.create(null);
+    rows.forEach(function (r) {
+      var k = r[keyField] || '(Missing)';
+      var f = map[k] || (map[k] = newFunnel());
+      addFunnel(f, r);
+    });
+    return map;
+  }
+  function orderedDayTypes(map) {
+    var keys = Object.keys(map), out = [];
+    ['Weekday', 'Weekend'].forEach(function (k) { out.push(k); });
+    keys.forEach(function (k) { if (out.indexOf(k) === -1) out.push(k); });
+    return out;
+  }
+  function weekdayWeekend(rows) {
+    var map = dayTypeGroups(rows, 'cDT');
+    var total = newFunnel();
+    rows.forEach(function (r) { addFunnel(total, r); });
+    var list = orderedDayTypes(map).filter(function (k) { return map[k] || k === 'Weekday' || k === 'Weekend'; })
+      .map(function (k) { return { key: k, f: map[k] || newFunnel() }; });
+    // event-day summaries: share of that event's leads by the event's own day type
+    var ev = [
+      { name: 'Meeting Scheduled Day Type', field: 'msDT', has: 'msDay' },
+      { name: 'Meeting Done Day Type', field: 'mdDT', has: 'mdDay' },
+      { name: 'Order Closure Day Type', field: 'orDT', has: 'orDay' }
+    ].map(function (e) {
+      var c = Object.create(null), tot = 0;
+      rows.forEach(function (r) {
+        if (r[e.has] === null) return;
+        var k = r[e.field] || '(Missing)'; c[k] = (c[k] || 0) + 1; tot++;
+      });
+      return { name: e.name, counts: c, total: tot };
+    });
+    return { rows: list, total: total, events: ev };
+  }
+
+  // ---------------------------------------------------------------- metric D2 (timing)
+  /** Mutually exclusive outcome for a scheduled lead. */
+  function timingCategory(r) {
+    if (r.mdDay === null) return 'notDone';
+    var diff = r.mdDay - r.msDay;
+    if (diff < 0) return 'invalid';
+    if (diff === 0) return r.rtm === 'RTM' ? 'sameRtm' : 'samePre';
+    if (diff <= 5) return 'd' + diff;
+    return 'above5';
+  }
+  function meetingTiming(rows, asofDay) {
+    function blank() { var o = { den: 0, immature: 0 }; TIMING_KEYS.forEach(function (k) { o[k] = 0; }); return o; }
+    var map = Object.create(null), total = blank();
+    rows.forEach(function (r) {
+      if (r.msDay === null) return;
+      var k = r.cDT || '(Missing)';
+      var g = map[k] || (map[k] = blank());
+      if (asofDay - r.msDay < TIMING_MATURITY_DAYS) { g.immature++; total.immature++; return; }
+      var cat = timingCategory(r);
+      g[cat]++; g.den++; total[cat]++; total.den++;
+    });
+    return { rows: orderedDayTypes(map).map(function (k) { return { key: k, g: map[k] || blank() }; }), total: total, keys: TIMING_KEYS, labels: TIMING_LABELS };
+  }
+
+  // ---------------------------------------------------------------- metric E
+  function cohortFunnel(rows) {
+    var map = Object.create(null);
+    rows.forEach(function (r) {
+      var e = map[r.cohortKey] || (map[r.cohortKey] = { key: r.cohortKey, label: r.cohortLabel, f: newFunnel() });
+      addFunnel(e.f, r);
+    });
+    return Object.keys(map).sort().map(function (k) { return map[k]; });
+  }
+
+  // ---------------------------------------------------------------- metric F
+  function slotRows(map) {
+    var keys = Object.keys(map), out = SLOT_ORDER.filter(function (s) { return map[s]; });
+    keys.forEach(function (k) { if (SLOT_ORDER.indexOf(k) === -1) out.push(k); });
+    // always show the 4 standard slots even if empty
+    SLOT_ORDER.forEach(function (s) { if (out.indexOf(s) === -1) out.push(s); });
+    out.sort(function (a, b) {
+      var ia = SLOT_ORDER.indexOf(a), ib = SLOT_ORDER.indexOf(b);
+      if (ia === -1) ia = 99; if (ib === -1) ib = 99;
+      return ia - ib || a.localeCompare(b);
+    });
+    return out;
+  }
+  function slotAnalysis(rows) {
+    var ms = Object.create(null), md = Object.create(null), od = Object.create(null);
+    rows.forEach(function (r) {
+      if (r.msDay !== null) {
+        var k = r.msSlot || '(Blank)';
+        var e = ms[k] || (ms[k] = { scheduled: 0, rtm: 0, presch: 0, validMd: 0 });
+        e.scheduled++;
+        if (r.rtm === 'RTM') e.rtm++; else if (r.rtm === 'Prescheduled') e.presch++;
+        if (r.mdDay !== null && r.mdDay >= r.msDay) e.validMd++;   // chronology-valid MD only
+      }
+      if (r.mdDay !== null) {
+        var k2 = r.mdSlot || '(Blank)';
+        var e2 = md[k2] || (md[k2] = { md: 0, orderAfter: 0 });
+        e2.md++;
+        if (r.orDay !== null && r.orDay >= r.mdDay) e2.orderAfter++;
+      }
+      if (r.orDay !== null) {
+        var k3 = r.orSlot || '(Blank)';
+        var e3 = od[k3] || (od[k3] = { orders: 0 });
+        e3.orders++;
+      }
+    });
+    var tot = function (m, f) { return Object.keys(m).reduce(function (a, k) { return a + m[k][f]; }, 0); };
+    return {
+      ms: slotRows(ms).map(function (k) { return Object.assign({ slot: k }, ms[k] || { scheduled: 0, rtm: 0, presch: 0, validMd: 0 }); }),
+      md: slotRows(md).map(function (k) { return Object.assign({ slot: k }, md[k] || { md: 0, orderAfter: 0 }); }),
+      order: slotRows(od).map(function (k) { return Object.assign({ slot: k }, od[k] || { orders: 0 }); }),
+      totals: { scheduled: tot(ms, 'scheduled'), validMd: tot(ms, 'validMd'), md: tot(md, 'md'), orderAfter: tot(md, 'orderAfter'), orders: tot(od, 'orders') }
+    };
+  }
+
+  // ------------------------------------------------------------ data quality
+  /** Counts over any row set (full dataset or current filter). */
+  function qualityCounts(rows, asofDay) {
+    var q = {
+      leads: rows.length, missingCluster: 0, unknownCluster: 0, missingChannel: 0, missingLrm: 0, unassignedLrm: 0,
+      missingCreated: 0, missingScore: 0, nonNumericScore: 0, outOfRangeScore: 0,
+      missingMs: 0, missingMd: 0, missingOrder: 0,
+      mdBeforeMs: 0, orderBeforeMd: 0, mdWithoutMs: 0, orderWithoutMd: 0,
+      msBeforeCreation: 0, orderBeforeCreation: 0, msAfterAsof: 0, mdAfterAsof: 0, orderAfterAsof: 0,
+      rtm: 0, prescheduled: 0, notScheduled: 0, otherRtm: 0, rtmStatusMismatch: 0,
+      slotMismatchMs: 0, slotMismatchMd: 0, slotMismatchOrder: 0, dayTypeMismatch: 0
+    };
+    rows.forEach(function (r) {
+      if (!r.cluster) q.missingCluster++; else if (r.cluster === 'Unknown') q.unknownCluster++;
+      if (!r.channel) q.missingChannel++;
+      if (!r.lrm) q.missingLrm++; else if (r.lrm === 'Unassigned') q.unassignedLrm++;
+      if (r.cDay === null) q.missingCreated++;
+      if (r.scoreClass === 'unscored') q.missingScore++;
+      else if (r.scoreClass === 'nonnumeric') q.nonNumericScore++;
+      else if (r.scoreClass === 'outofrange') q.outOfRangeScore++;
+      if (r.msDay === null) q.missingMs++;
+      if (r.mdDay === null) q.missingMd++;
+      if (r.orDay === null) q.missingOrder++;
+      if (r.msDay !== null && r.mdDay !== null && r.mdDay < r.msDay) q.mdBeforeMs++;
+      if (r.mdDay !== null && r.orDay !== null && r.orDay < r.mdDay) q.orderBeforeMd++;
+      if (r.mdDay !== null && r.msDay === null) q.mdWithoutMs++;
+      if (r.orDay !== null && r.mdDay === null) q.orderWithoutMd++;
+      if (r.cDay !== null) {
+        if (r.msDay !== null && r.msDay < r.cDay) q.msBeforeCreation++;
+        if (r.orDay !== null && r.orDay < r.cDay) q.orderBeforeCreation++;
+      }
+      if (r.msDay !== null && r.msDay > asofDay) q.msAfterAsof++;
+      if (r.mdDay !== null && r.mdDay > asofDay) q.mdAfterAsof++;
+      if (r.orDay !== null && r.orDay > asofDay) q.orderAfterAsof++;
+      if (r.rtm === 'RTM') q.rtm++; else if (r.rtm === 'Prescheduled') q.prescheduled++;
+      else if (r.rtm === 'Not Scheduled') q.notScheduled++; else q.otherRtm++;
+      // consistency: a lead has a scheduled meeting <=> status is RTM or Prescheduled
+      if ((r.msDay !== null) !== (r.rtm === 'RTM' || r.rtm === 'Prescheduled')) q.rtmStatusMismatch++;
+      // supplied slot vs slot recomputed from the (minute-resolution) timestamp — informational
+      if (r.msDay !== null && r.msSlot !== slotOfSec(r.msSec)) q.slotMismatchMs++;
+      if (r.mdDay !== null && r.mdSlot !== slotOfSec(r.mdSec)) q.slotMismatchMd++;
+      if (r.orDay !== null && r.orSlot !== slotOfSec(r.orSec)) q.slotMismatchOrder++;
+      var bad = (r.cDay !== null && r.cDT !== dayTypeOfDay(r.cDay)) ||
+        (r.msDay !== null && r.msDT !== dayTypeOfDay(r.msDay)) ||
+        (r.mdDay !== null && r.mdDT !== dayTypeOfDay(r.mdDay)) ||
+        (r.orDay !== null && r.orDT !== dayTypeOfDay(r.orDay));
+      if (bad) q.dayTypeMismatch++;
+    });
+    return q;
+  }
+
+  // ---------------------------------------------------------------- compute all
+  /**
+   * rows must be the (already filtered) prepared rows.
+   * opts: { asofDay (required), dispCols (optional: stable disposition columns) }
+   */
+  function computeAll(rows, opts) {
+    var asofDay = opts.asofDay;
+    var dispCols = opts.dispCols || dispColumns(rows);
+    var out = { asofDay: asofDay, leads: rows.length };
+
+    var f = newFunnel();
+    rows.forEach(function (r) { addFunnel(f, r); });
+    out.kpi = { f: f, rates: funnelRates(f) };
+
+    out.score = scoreDistribution(rows);
+    out.disposition = dispositionDistribution(rows, dispCols);
+    out.ageingMs = ageing(rows, 'msDay', asofDay);
+    out.ageingMd = ageing(rows, 'mdDay', asofDay);
+    out.weekday = weekdayWeekend(rows);
+    out.timing = meetingTiming(rows, asofDay);
+    out.cohort = cohortFunnel(rows);
+    out.slots = slotAnalysis(rows);
+    out.reconciliation = reconcile(rows, out);
+    return out;
+  }
+
+  // ------------------------------------------------------------ reconciliation
+  function reconcile(rows, o) {
+    var checks = [], n = rows.length;
+    function add(name, actual, expected, note) {
+      checks.push({ name: name, ok: actual === expected, actual: actual, expected: expected, note: note || '' });
+    }
+    var ids = Object.create(null), dup = 0;
+    rows.forEach(function (r) { if (ids[r.id]) dup++; else ids[r.id] = 1; });
+    add('Each filtered lead counted once (duplicate Lead IDs in filtered set)', dup, 0);
+    add('Score table: LRM rows + excluded invalid scores = filtered leads',
+      o.score.rows.reduce(function (a, e) { return a + e.n; }, 0) + o.score.invalid.outOfRange + o.score.invalid.nonNumeric, n);
+    add('Score table: TOTAL row = sum of LRM rows', o.score.total.n, o.score.rows.reduce(function (a, e) { return a + e.n; }, 0));
+    add('Disposition table: LRM rows sum = filtered leads', o.disposition.rows.reduce(function (a, e) { return a + e.n; }, 0), n);
+    add('Disposition table: every LRM row\'s category counts = its lead total',
+      o.disposition.rows.filter(function (e) {
+        return Object.keys(e.counts).reduce(function (a, k) { return a + e.counts[k]; }, 0) !== e.n;
+      }).length, 0);
+    add('Disposition table: columns cover every category present (uncovered leads)',
+      n - o.disposition.columns.reduce(function (a, c) { return a + (o.disposition.total.counts[c] || 0); }, 0), 0);
+    add('Cohort table: cohort totals = filtered leads', o.cohort.reduce(function (a, e) { return a + e.f.total; }, 0), n);
+    add('Weekday/Weekend table: day-type rows = filtered leads', o.weekday.rows.reduce(function (a, e) { return a + e.f.total; }, 0), n);
+    add('RTM + Prescheduled + Not Scheduled (+ other) = filtered leads', o.kpi.f.rtm + o.kpi.f.presch + o.kpi.f.notSched + o.kpi.f.otherRtm, n);
+    add('RTM + Prescheduled = leads with MS', o.kpi.f.rtm + o.kpi.f.presch, o.kpi.f.ms);
+    add('MS slot table total = leads with MS', o.slots.totals.scheduled, o.kpi.f.ms);
+    add('MD slot table total = leads with MD', o.slots.totals.md, o.kpi.f.md);
+    add('Order slot table total = leads with order closure', o.slots.totals.orders, o.kpi.f.or);
+    add('MS slot "valid MD" total = MS→MD converted leads', o.slots.totals.validMd, o.kpi.f.msmd);
+    add('MD slot "order after MD" total = MD→Order converted leads', o.slots.totals.orderAfter, o.kpi.f.mdor);
+    var t = o.timing.total;
+    add('Meeting timing: outcome categories sum = mature scheduled denominator',
+      TIMING_KEYS.reduce(function (a, k) { return a + t[k]; }, 0), t.den);
+    add('Meeting timing: mature + immature = leads with MS', t.den + t.immature, o.kpi.f.ms);
+    add('Meeting timing: day-type rows sum = total row',
+      o.timing.rows.reduce(function (a, e) { return a + e.g.den; }, 0), t.den);
+    return checks;
+  }
+
+  return {
+    REQUIRED_COLUMNS: REQUIRED_COLUMNS, SCORE_LABELS: SCORE_LABELS, AGEING_BRACKETS: AGEING_BRACKETS,
+    TIMING_KEYS: TIMING_KEYS, TIMING_LABELS: TIMING_LABELS, TIMING_MATURITY_DAYS: TIMING_MATURITY_DAYS,
+    SLOT_ORDER: SLOT_ORDER,
+    parseDateTime: parseDateTime, dayTypeOfDay: dayTypeOfDay, slotOfSec: slotOfSec,
+    dayToISO: dayToISO, isoToDay: isoToDay, todayIstDay: todayIstDay,
+    prepareRows: prepareRows, filterOptions: filterOptions, filterRows: filterRows,
+    dispColumns: dispColumns, computeAll: computeAll, qualityCounts: qualityCounts,
+    funnelRates: funnelRates, pct: pct, timingCategory: timingCategory
+  };
+});
+
+</script>
+  <script>
+/*
+ * SolarSquare Presales Dashboard — UI layer.
+ * All numbers come from calc.js (PresalesCalc). This file only loads the CSV
+ * once, wires the filters, and renders tables / downloads.
+ *
+ * DATA ENTRY POINT: loadDataset() fetches the published Google Sheets CSV.
+ * The added admin screen is a client-side convenience gate, not secure auth.
+ */
+(function () {
+  'use strict';
+
+  var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSU9CL9rwyuFCpWjAgCerv6xtpTKG0vKE9g8ZwD3MHR_q-b-jUHmGji41y5HRZSlr9rZFPEH1H9yfBb/pub?gid=0&single=true&output=csv';
+  var C = window.PresalesCalc;
+
+  var state = {
+    all: [], load: null, parseErrors: 0, dispCols: [], options: null,
+    filters: { cluster: 'All', channel: 'All', cohort: 'All' },
+    asofDay: C.todayIstDay(), loadedAt: null, exports: {}, charts: {}, result: null, filtered: []
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtInt(n) { return Number(n).toLocaleString('en-IN'); }
+  function fmtPct(p, dp) { return p === null || p === undefined ? '—' : (p * 100).toFixed(dp === undefined ? 1 : dp) + '%'; }
+  function r2(x) { return x === null ? '' : Math.round(x * 10000) / 100; }
+
+  // ------------------------------------------------------------------ status
+  function setStatus(kind, msg) {
+    var el = $('status');
+    el.className = 'status ' + kind;
+    el.textContent = msg;
+  }
+
+  // -------------------------------------------------------------- data loading
+  /** Single network call for the whole session. Filters never re-run this. */
+  function fetchDataset() {
+    return fetch(CSV_URL, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('CSV request failed: HTTP ' + res.status);
+      return res.text();
+    });
+  }
+
+  function loadDataset() {
+    setStatus('loading', 'Loading CSV from Google Sheets…');
+    if (!window.Papa) { fail('Papa Parse failed to load (check your network / CDN access).'); return; }
+    fetchDataset().then(function (text) {
+      return processCsv(text, CSV_URL);
+    }).catch(function (e) {
+      var m = String(e && e.message ? e.message : e);
+      fail((/Failed to fetch|NetworkError|Load failed/i.test(m)
+        ? 'The browser could not fetch the Google Sheets CSV. This usually happens when the page is opened directly from disk (file://), when the sheet is no longer published, or when a network policy blocks Google. Check that the dashboard is hosted through a web server, that the Google Sheets CSV is still published, and that your network allows access to Google Sheets.'
+        : m));
+    });
+  }
+
+  /** Parse + prepare + render the CSV text fetched from the published source. */
+  function processCsv(text, sourceLabel) {
+    setStatus('loading', 'Parsing CSV…');
+    // yield to the browser so the status text paints before the heavy parse
+    return new Promise(function (resolve) { setTimeout(resolve, 20); }).then(function () {
+      var p = window.Papa.parse(text, { header: true, skipEmptyLines: true });
+      state.parseErrors = p.errors ? p.errors.length : 0;
+      var prep = C.prepareRows(p.data, p.meta.fields);
+      if (prep.error) { fail(prep.error); return; }
+      state.all = prep.rows; state.load = prep.load; state.loadedAt = new Date(); state.source = sourceLabel;
+      state.dispCols = C.dispColumns(prep.rows);
+      state.options = C.filterOptions(prep.rows);
+      initControls();
+      $('content').hidden = false;
+      render();
+      setStatus('ok', 'Loaded ' + fmtInt(state.load.rowsLoaded) + ' rows · ' + fmtInt(state.load.uniqueIds) + ' unique Lead IDs · ' +
+        state.loadedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST · source: ' + (sourceLabel === CSV_URL ? 'Google Sheets CSV' : sourceLabel));
+    });
+  }
+
+  function fail(msg) {
+    $('content').hidden = true;
+    setStatus('error', 'Could not build the dashboard: ' + msg);
+  }
+
+  // ----------------------------------------------------------------- controls
+  function fillSelect(id, items) {
+    var sel = $(id);
+    sel.innerHTML = '<option value="All">All</option>' + items.map(function (i) {
+      var v = typeof i === 'string' ? i : i.key, l = typeof i === 'string' ? i : i.label;
+      return '<option value="' + esc(v) + '">' + esc(l) + '</option>';
+    }).join('');
+  }
+  function initControls() {
+    fillSelect('f-cluster', state.options.cluster);
+    fillSelect('f-channel', state.options.channel);
+    fillSelect('f-cohort', state.options.cohort);
+    ['cluster', 'channel', 'cohort'].forEach(function (k) {
+      $('f-' + k).onchange = function () { state.filters[k] = this.value; render(); };
+    });
+    $('f-asof').value = C.dayToISO(state.asofDay);
+    $('f-asof').onchange = function () {
+      var d = C.isoToDay(this.value);
+      if (d === null) { this.value = C.dayToISO(state.asofDay); return; }
+      state.asofDay = d; render();
+    };
+    $('btn-asof-today').onclick = function () { state.asofDay = C.todayIstDay(); $('f-asof').value = C.dayToISO(state.asofDay); render(); };
+    $('btn-reset').onclick = function () {
+      state.filters = { cluster: 'All', channel: 'All', cohort: 'All' };
+      ['cluster', 'channel', 'cohort'].forEach(function (k) { $('f-' + k).value = 'All'; });
+      render();
+    };
+    $('btn-dl-leads').onclick = function () { downloadLeads(); };
+    document.body.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-export]');
+      if (b) downloadTable(b.getAttribute('data-export'));
+    });
+  }
+
+  // ------------------------------------------------------------------- heat map
+  function heatColor(t) {
+    var R = [250, 170, 165], Y = [255, 241, 176], G = [150, 214, 170];
+    var a = t < 0.5 ? R : Y, b = t < 0.5 ? Y : G, u = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+    return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * u); }).join(',') + ')';
+  }
+  /** Column-wise min→max colour scale over non-total rows (cells carrying .p). */
+  function heatColumns(rows, cols) {
+    cols.forEach(function (ci) {
+      var vals = [];
+      rows.forEach(function (r) { if (!r.total && r.cells[ci] && r.cells[ci].p !== null && r.cells[ci].p !== undefined) vals.push(r.cells[ci].p); });
+      if (vals.length < 2) return;
+      var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+      if (mx === mn) return;
+      rows.forEach(function (r) {
+        var c = r.cells[ci];
+        if (!r.total && c && c.p !== null && c.p !== undefined) c.h = (c.p - mn) / (mx - mn);
+      });
+    });
+  }
+  /** One colour scale across all listed columns (for small tables where per-column scaling would exaggerate tiny gaps). */
+  function heatGlobal(rows, cols) {
+    var vals = [];
+    rows.forEach(function (r) { if (!r.total) cols.forEach(function (ci) { var c = r.cells[ci]; if (c && c.p !== null && c.p !== undefined) vals.push(c.p); }); });
+    if (vals.length < 2) return;
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    if (mx === mn) return;
+    rows.forEach(function (r) { if (!r.total) cols.forEach(function (ci) { var c = r.cells[ci]; if (c && c.p !== null && c.p !== undefined) c.h = (c.p - mn) / (mx - mn); }); });
+  }
+  function heatRow(cells) {
+    var vals = cells.filter(function (c) { return c.p !== null && c.p !== undefined; }).map(function (c) { return c.p; });
+    if (vals.length < 2) return;
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    if (mx === mn) return;
+    cells.forEach(function (c) { if (c.p !== null && c.p !== undefined) c.h = (c.p - mn) / (mx - mn); });
+  }
+
+  // -------------------------------------------------------------- table render
+  function cInt(n) { return { t: fmtInt(n), v: n }; }
+  function cPct(p) { return { t: fmtPct(p), v: r2(p), p: p }; }
+  function cLbl(s) { return { t: s, v: s, lbl: true }; }
+
+  function renderTable(id, headers, rows, opts) {
+    opts = opts || {};
+    var h = '<table><thead><tr>' + headers.map(function (x, i) { return '<th' + (i === 0 ? ' class="lbl"' : '') + '>' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    rows.forEach(function (r) {
+      h += '<tr' + (r.total ? ' class="total"' : '') + '>' + r.cells.map(function (c) {
+        var style = c.h !== undefined ? ' style="background:' + heatColor(c.h) + '"' : '';
+        var inner = c.html !== undefined ? c.html : esc(c.t);
+        return '<' + (c.lbl ? 'th class="lbl" scope="row"' : 'td') + style + '>' + inner + '</' + (c.lbl ? 'th' : 'td') + '>';
+      }).join('') + '</tr>';
+    });
+    h += '</tbody></table>';
+    $(id).innerHTML = h;
+    state.exports[id] = {
+      headers: opts.exportHeaders || headers,
+      rows: rows.map(function (r) { return r.exp || r.cells.map(function (c) { return c.v; }); })
+    };
+  }
+
+  // -------------------------------------------------------------------- render
+  function render() {
+    if (!state.all.length) return;
+    var f = state.filters;
+    state.filtered = C.filterRows(state.all, f);
+    var o = state.result = C.computeAll(state.filtered, { asofDay: state.asofDay, dispCols: state.dispCols });
+
+    var cohortLabel = f.cohort === 'All' ? 'All' : (state.options.cohort.filter(function (c) { return c.key === f.cohort; })[0] || { label: f.cohort }).label;
+    $('selection').innerHTML = 'Showing <b>' + fmtInt(o.leads) + '</b> of ' + fmtInt(state.all.length) + ' unique leads · Cluster: <b>' + esc(f.cluster) +
+      '</b> · Channel: <b>' + esc(f.channel) + '</b> · Cohort Month: <b>' + esc(cohortLabel) + '</b> · As-of Date (IST): <b>' + C.dayToISO(state.asofDay) + '</b>';
+
+    renderKpis(o);
+    renderScore(o);
+    renderDisposition(o);
+    renderAgeing(o);
+    renderWeekday(o);
+    renderTiming(o);
+    renderCohort(o);
+    renderSlots(o);
+    renderQuality(o);
+    renderBadge(o);
+  }
+
+  function renderBadge(o) {
+    var bad = o.reconciliation.filter(function (c) { return !c.ok; }).length;
+    var el = $('recon-badge');
+    el.className = 'badge ' + (bad ? 'bad' : 'good');
+    el.textContent = bad ? bad + ' reconciliation check(s) FAILED' : 'All ' + o.reconciliation.length + ' reconciliation checks passed';
+  }
+
+  function renderKpis(o) {
+    var f = o.kpi.f, r = o.kpi.rates;
+    var cards = [
+      ['Total Unique Leads', fmtInt(f.total), 'Filtered lead population'],
+      ['Leads with MS', fmtInt(f.ms), fmtPct(r.leadToMs) + ' of leads'],
+      ['Leads with Valid MD', fmtInt(f.md), fmtPct(r.leadToMd) + ' of leads · ' + fmtInt(f.msmd) + ' also chronology-valid vs MS'],
+      ['Leads with Valid Orders', fmtInt(f.or), fmtPct(r.leadToOr) + ' of leads · ' + fmtInt(f.mdor) + ' dated on/after MD'],
+      ['Lead → MS %', fmtPct(r.leadToMs), fmtInt(f.ms) + ' / ' + fmtInt(f.total)],
+      ['Lead → MD %', fmtPct(r.leadToMd), fmtInt(f.md) + ' / ' + fmtInt(f.total)],
+      ['MS → MD %', fmtPct(r.msToMd), fmtInt(f.msmd) + ' / ' + fmtInt(f.ms) + ' (MD on/after MS date)'],
+      ['MD → Order %', fmtPct(r.mdToOr), fmtInt(f.mdor) + ' / ' + fmtInt(f.md) + ' (order on/after MD date)'],
+      ['RTM Leads', fmtInt(f.rtm), fmtPct(C.pct(f.rtm, f.ms)) + ' of leads with MS'],
+      ['Prescheduled Leads', fmtInt(f.presch), fmtPct(C.pct(f.presch, f.ms)) + ' of leads with MS']
+    ];
+    $('kpis').innerHTML = cards.map(function (c) {
+      return '<div class="kpi"><div class="kpi-l">' + esc(c[0]) + '</div><div class="kpi-v">' + esc(c[1]) + '</div><div class="kpi-s">' + esc(c[2]) + '</div></div>';
+    }).join('');
+  }
+
+  function renderScore(o) {
+    var s = o.score, hdr = ['LRM', 'Leads (denominator)'].concat(s.labels);
+    var rows = s.rows.map(function (e) {
+      return { cells: [cLbl(e.lrm), cInt(e.n)].concat(e.counts.map(function (c) { return cPct(C.pct(c, e.n)); })) };
+    });
+    rows.push({ total: true, cells: [cLbl('TOTAL'), cInt(s.total.n)].concat(s.total.counts.map(function (c) { return cPct(C.pct(c, s.total.n)); })) });
+    heatColumns(rows, [2, 3, 4, 5, 6, 7]);
+    renderTable('tbl-score', hdr, rows, { exportHeaders: hdr.map(function (x, i) { return i > 1 ? x + ' (%)' : x; }) });
+    var inv = s.invalid.outOfRange + s.invalid.nonNumeric;
+    $('note-score').textContent = 'Percentages of each LRM\'s leads (unscored included). TOTAL is computed across all filtered leads, not averaged. ' +
+      (inv ? fmtInt(inv) + ' lead(s) with out-of-range / non-numeric scores are excluded from this table (see Data Quality).' : 'No out-of-range or non-numeric scores.');
+  }
+
+  function renderDisposition(o) {
+    var d = o.disposition, hdr = ['LRM', 'Leads (denominator)'].concat(d.columns);
+    var rows = d.rows.map(function (e) {
+      return { cells: [cLbl(e.lrm), cInt(e.n)].concat(d.columns.map(function (c) { return cPct(C.pct(e.counts[c] || 0, e.n)); })) };
+    });
+    rows.push({ total: true, cells: [cLbl('TOTAL'), cInt(d.total.n)].concat(d.columns.map(function (c) { return cPct(C.pct(d.total.counts[c] || 0, d.total.n)); })) });
+    var idx = []; for (var i = 2; i < hdr.length; i++) idx.push(i);
+    heatColumns(rows, idx);
+    renderTable('tbl-disp', hdr, rows, { exportHeaders: hdr.map(function (x, i) { return i > 1 ? x + ' (%)' : x; }) });
+  }
+
+  function renderAgeing(o) {
+    var br = o.ageingMs.brackets;
+    var hdr = ['Lead Created → …'].concat(br.map(function (b) { return b.label; }));
+    var ehdr = ['Lead Created → …'];
+    br.forEach(function (b) { ehdr.push(b.label + ' (leads)', b.label + ' (denominator)', b.label + ' (%)'); });
+    function row(label, a) {
+      var cells = [cLbl(label)], exp = [label];
+      a.brackets.forEach(function (b) {
+        cells.push({ html: fmtPct(b.pct) + '<span class="sub">' + fmtInt(b.num) + ' / ' + fmtInt(b.den) + '</span>', t: fmtPct(b.pct), v: b.num, p: b.pct });
+        exp.push(b.num, b.den, r2(b.pct));
+      });
+      heatRow(cells.slice(1));
+      return { cells: cells, exp: exp };
+    }
+    renderTable('tbl-ageing', hdr, [row('Meeting Scheduled', o.ageingMs), row('Meeting Done', o.ageingMd)], { exportHeaders: ehdr });
+    var m1 = o.ageingMs.meta, m2 = o.ageingMd.meta;
+    $('note-ageing').textContent = 'Each cell shows % and (leads with the event in that age bracket) / (leads old enough to be measured) at As-of Date ' + C.dayToISO(state.asofDay) +
+      '. Brackets do not overlap: D+1 = 0–1 days, D+3 = >1–3, D+7 = >3–7, D+15 = >7–15, D+22 = >15–22, D+30 = >22–30, D+60 = >30–60, Above D+60 = >60. ' +
+      'Not counted in any bracket: MS dated before lead creation ' + fmtInt(m1.beforeCreation) + ', MS dated after As-of ' + fmtInt(m1.afterAsof) +
+      '; MD before creation ' + fmtInt(m2.beforeCreation) + ', MD after As-of ' + fmtInt(m2.afterAsof) + '.';
+  }
+
+  function renderWeekday(o) {
+    var w = o.weekday;
+    function row(label, f, total) {
+      var r = C.funnelRates(f);
+      return { total: total, cells: [cLbl(label), cInt(f.total), cInt(f.ms), cInt(f.md), cInt(f.or), cPct(r.leadToMs), cPct(r.leadToMd), cPct(r.msToMd), cPct(r.mdToOr)] };
+    }
+    var rows = w.rows.map(function (e) { return row(e.key, e.f, false); });
+    rows.push(row('TOTAL', w.total, true));
+    var hdr = ['Lead Created Day Type', 'Total Unique Leads', 'Leads with Meeting Scheduled', 'Leads with Meeting Done', 'Leads with Order Closure', 'Lead → MS %', 'Lead → MD %', 'MS → MD %', 'MD → Order %'];
+    renderTable('tbl-weekday', hdr, rows, { exportHeaders: hdr.map(function (x) { return /%$/.test(x) ? x.replace(' %', ' (%)') : x; }) });
+
+    var keys = ['Weekday', 'Weekend'];
+    w.events.forEach(function (e) { Object.keys(e.counts).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); }); });
+    var hdr2 = ['Event (by its own day type)'], ehdr = ['Event'];
+    keys.forEach(function (k) { hdr2.push(k + ' leads', k + ' %'); ehdr.push(k + ' leads', k + ' (%)'); });
+    hdr2.push('Total leads'); ehdr.push('Total leads');
+    var rows2 = w.events.map(function (e) {
+      var cells = [cLbl(e.name)];
+      keys.forEach(function (k) { var n = e.counts[k] || 0; cells.push(cInt(n), cPct(C.pct(n, e.total))); });
+      cells.push(cInt(e.total));
+      return { cells: cells };
+    });
+    renderTable('tbl-eventday', hdr2, rows2, { exportHeaders: ehdr });
+  }
+
+  function renderTiming(o) {
+    var t = o.timing, keys = t.keys;
+    var hdr = ['Lead Created Day Type', 'Mature scheduled leads (denominator)', 'Immature MS (excluded)'].concat(keys.map(function (k) { return t.labels[k]; }));
+    var ehdr = ['Lead Created Day Type', 'Mature scheduled leads (denominator)', 'Immature MS (excluded)'];
+    keys.forEach(function (k) { ehdr.push(t.labels[k] + ' (n)', t.labels[k] + ' (%)'); });
+    function row(label, g, total) {
+      var cells = [cLbl(label), cInt(g.den), cInt(g.immature)], exp = [label, g.den, g.immature];
+      keys.forEach(function (k) {
+        var p = C.pct(g[k], g.den);
+        cells.push({ html: fmtPct(p) + '<span class="sub">' + fmtInt(g[k]) + '</span>', t: fmtPct(p), v: g[k], p: p });
+        exp.push(g[k], r2(p));
+      });
+      return { total: total, cells: cells, exp: exp };
+    }
+    var rows = t.rows.map(function (e) { return row(e.key, e.g, false); });
+    rows.push(row('TOTAL', t.total, true));
+    var idx = []; for (var i = 3; i < hdr.length; i++) idx.push(i);
+    heatGlobal(rows, idx);
+    renderTable('tbl-timing', hdr, rows, { exportHeaders: ehdr });
+    $('note-timing').textContent = 'Only leads whose MS date is at least ' + C.TIMING_MATURITY_DAYS + ' calendar days before the As-of Date (' + C.dayToISO(state.asofDay) +
+      ') are included. "Same Day — RTM" counts only meeting_rtm_status = RTM; same-calendar-day MS/MD with any other status is shown as "Same Day — Prescheduled". Categories are mutually exclusive and sum to the denominator.';
+  }
+
+  function renderCohort(o) {
+    var hdr = ['Cohort Month', 'Total Unique Leads', 'Leads with MS', 'Leads with Valid MD', 'Leads with Valid Order',
+      'MS → MD converted (MD on/after MS)', 'MD → Order converted (order on/after MD)', 'Lead → MS %', 'Lead → MD %', 'MS → MD %', 'MD → Order %'];
+    function row(label, f, total) {
+      var r = C.funnelRates(f);
+      return { total: total, cells: [cLbl(label), cInt(f.total), cInt(f.ms), cInt(f.md), cInt(f.or), cInt(f.msmd), cInt(f.mdor), cPct(r.leadToMs), cPct(r.leadToMd), cPct(r.msToMd), cPct(r.mdToOr)] };
+    }
+    var rows = o.cohort.map(function (e) { return row(e.label, e.f, false); });
+    if (o.cohort.length > 1) rows.push(row('TOTAL', o.kpi.f, true));
+    renderTable('tbl-cohort', hdr, rows, { exportHeaders: hdr.map(function (x) { return /%$/.test(x) ? x.replace(' %', ' (%)') : x; }) });
+    var f = o.kpi.f;
+    $('note-cohort').textContent = 'Invalid chronology is never counted as a conversion: ' + fmtInt(f.mdBeforeMs) + ' lead(s) have MD dated before MS and ' + fmtInt(f.orBeforeMd) +
+      ' have an order dated before MD (see Data Quality).';
+  }
+
+  function renderSlots(o) {
+    var s = o.slots;
+    var rows = s.ms.map(function (e) { return { cells: [cLbl(e.slot), cInt(e.scheduled), cInt(e.rtm), cInt(e.presch), cInt(e.validMd), cPct(C.pct(e.validMd, e.scheduled))] }; });
+    rows.push({ total: true, cells: [cLbl('TOTAL'), cInt(s.totals.scheduled), cInt(s.ms.reduce(function (a, e) { return a + e.rtm; }, 0)), cInt(s.ms.reduce(function (a, e) { return a + e.presch; }, 0)), cInt(s.totals.validMd), cPct(C.pct(s.totals.validMd, s.totals.scheduled))] });
+    var h1 = ['MS Slot', 'Unique Leads Scheduled', 'RTM Leads', 'Prescheduled Leads', 'Unique Leads with Valid MD', 'MS → MD Conversion %'];
+    renderTable('tbl-msslot', h1, rows, { exportHeaders: h1.map(function (x) { return x.replace(' %', ' (%)'); }) });
+
+    var rows2 = s.md.map(function (e) { return { cells: [cLbl(e.slot), cInt(e.md), cInt(e.orderAfter), cPct(C.pct(e.orderAfter, e.md))] }; });
+    rows2.push({ total: true, cells: [cLbl('TOTAL'), cInt(s.totals.md), cInt(s.totals.orderAfter), cPct(C.pct(s.totals.orderAfter, s.totals.md))] });
+    var h2 = ['MD Slot', 'Unique Leads with Valid MD', 'Unique Leads with Valid Order after MD', 'MD → Order Conversion %'];
+    renderTable('tbl-mdslot', h2, rows2, { exportHeaders: h2.map(function (x) { return x.replace(' %', ' (%)'); }) });
+
+    var rows3 = s.order.map(function (e) { return { cells: [cLbl(e.slot), cInt(e.orders), cPct(C.pct(e.orders, s.totals.orders))] }; });
+    rows3.push({ total: true, cells: [cLbl('TOTAL'), cInt(s.totals.orders), cPct(s.totals.orders ? 1 : null)] });
+    var h3 = ['Order Closure Slot', 'Unique Leads with Order Closure', 'Percentage of Total Orders'];
+    renderTable('tbl-orderslot', h3, rows3, { exportHeaders: ['Order Closure Slot', 'Unique Leads with Order Closure', 'Percentage of Total Orders (%)'] });
+  }
+
+  // -------------------------------------------------------------- data quality
+  function renderQuality(o) {
+    var L = state.load, qa = C.qualityCounts(state.all, state.asofDay), qf = C.qualityCounts(state.filtered, state.asofDay);
+    var items = [
+      ['Missing Cluster (blank)', 'missingCluster'], ['Cluster = "Unknown" (informational)', 'unknownCluster'],
+      ['Missing Channel', 'missingChannel'], ['Missing LRM (blank)', 'missingLrm'], ['LRM = "Unassigned" (informational)', 'unassignedLrm'],
+      ['Missing Lead Creation Date', 'missingCreated'],
+      ['Missing score (Unscored)', 'missingScore'], ['Non-numeric scores', 'nonNumericScore'], ['Out-of-range scores (<0 or >10)', 'outOfRangeScore'],
+      ['Missing meeting schedule date', 'missingMs'], ['Missing meeting done date', 'missingMd'], ['Missing order closure date', 'missingOrder'],
+      ['MD before MS (calendar date)', 'mdBeforeMs'], ['Order before MD (calendar date)', 'orderBeforeMd'],
+      ['MD without an MS date', 'mdWithoutMs'], ['Order without an MD date', 'orderWithoutMd'],
+      ['MS dated before lead creation', 'msBeforeCreation'], ['Order dated before lead creation', 'orderBeforeCreation'],
+      ['MS dated after As-of Date', 'msAfterAsof'], ['MD dated after As-of Date', 'mdAfterAsof'], ['Order dated after As-of Date', 'orderAfterAsof'],
+      ['RTM', 'rtm'], ['Prescheduled', 'prescheduled'], ['Not Scheduled', 'notScheduled'], ['Unexpected meeting_rtm_status value', 'otherRtm'],
+      ['MS present but RTM status inconsistent', 'rtmStatusMismatch'],
+      ['Supplied MS slot ≠ slot from timestamp (info)', 'slotMismatchMs'], ['Supplied MD slot ≠ slot from timestamp (info)', 'slotMismatchMd'],
+      ['Supplied order slot ≠ slot from timestamp (info)', 'slotMismatchOrder'], ['Supplied day type ≠ weekday of date', 'dayTypeMismatch']
+    ];
+    var rows = [
+      { cells: [cLbl('CSV rows loaded'), cInt(L.rowsLoaded), { t: '—' }] },
+      { cells: [cLbl('Unique Lead IDs (rows used in metrics)'), cInt(L.uniqueIds), cInt(state.filtered.length)] },
+      { cells: [cLbl('Duplicate Lead IDs (extra rows excluded)'), cInt(L.duplicateRows), { t: '—' }] },
+      { cells: [cLbl('Blank Lead IDs (rows excluded)'), cInt(L.blankIds), { t: '—' }] },
+      { cells: [cLbl('Unparseable date values (treated as missing)'), cInt(L.unparseableDates.lead_created_timestamp_ist + L.unparseableDates.meeting_schedule_date_ist + L.unparseableDates.meeting_done_date_ist + L.unparseableDates.order_closure_date_ist), { t: '—' }] },
+      { cells: [cLbl('CSV parser warnings'), cInt(state.parseErrors), { t: '—' }] }
+    ].concat(items.map(function (it) { return { cells: [cLbl(it[0]), cInt(qa[it[1]]), cInt(qf[it[1]])] }; }));
+    renderTable('tbl-dq', ['Check', 'All loaded leads', 'Current filter'], rows);
+
+    $('dq-meta').innerHTML = '<div><b>Source CSV:</b> <span class="mono">' + esc(state.source === CSV_URL ? CSV_URL : CSV_URL + '  (loaded from local file: ' + state.source + ')') + '</span></div>' +
+      '<div><b>Loaded at:</b> ' + esc(state.loadedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })) + ' IST · <b>Reporting As-of Date (IST):</b> ' + C.dayToISO(state.asofDay) + '</div>' +
+      '<div><b>Columns:</b> ' + L.headers.length + ' found' + (L.extraColumns.length ? ' (extra: ' + esc(L.extraColumns.join(', ')) + ')' : ', all 21 required columns present') + '</div>' +
+      (L.duplicateIds ? '<div class="warn">Duplicate Lead IDs detected (first occurrence kept): ' + esc(L.duplicateSample.join(', ')) + '</div>' : '');
+
+    $('dq-recon').innerHTML = '<ul class="recon">' + o.reconciliation.map(function (c) {
+      return '<li class="' + (c.ok ? 'ok' : 'fail') + '"><span class="mark">' + (c.ok ? '✓' : '✗') + '</span> ' + esc(c.name) +
+        (c.ok ? '' : ' — got ' + fmtInt(c.actual) + ', expected ' + fmtInt(c.expected)) + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  // ----------------------------------------------------------------- downloads
+  function saveCsv(name, csv) {
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function downloadTable(id) {
+    var ex = state.exports[id]; if (!ex) return;
+    saveCsv(id.replace('tbl-', 'presales_') + '.csv', window.Papa.unparse({ fields: ex.headers, data: ex.rows }));
+  }
+  function downloadLeads() {
+    var data = state.filtered.map(function (r) { return C.REQUIRED_COLUMNS.map(function (c) { return r.raw[c]; }); });
+    saveCsv('presales_filtered_leads.csv', window.Papa.unparse({ fields: C.REQUIRED_COLUMNS, data: data }));
+  }
+
+  var AUTH_KEY = 'solarsquare_presales_admin_session';
+  var ADMIN_USERNAME = 'admin';
+  var ADMIN_PASSWORD = 'admin'; // Demo-only: this client-side check is visible in the page source.
+
+  function enterDashboard() {
+    $('login-screen').hidden = true;
+    $('dashboard-shell').hidden = false;
+    $('login-error').textContent = '';
+    loadDataset();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    $('login-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = $('login-username').value.trim();
+      var password = $('login-password').value;
+      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        try { sessionStorage.setItem(AUTH_KEY, '1'); } catch (storageError) { /* Login still works for this page view. */ }
+        enterDashboard();
+      } else {
+        $('login-error').textContent = 'Incorrect username or password.';
+        $('login-password').value = '';
+        $('login-password').focus();
+      }
+    });
+
+    $('btn-logout').addEventListener('click', function () {
+      try { sessionStorage.removeItem(AUTH_KEY); } catch (storageError) { /* Ignore unavailable session storage. */ }
+      window.location.reload();
+    });
+
+    var authenticated = false;
+    try { authenticated = sessionStorage.getItem(AUTH_KEY) === '1'; } catch (storageError) { authenticated = false; }
+    if (authenticated) enterDashboard();
+  });
+})();
+
+</script>
+  </div>
+</body>
+</html>
